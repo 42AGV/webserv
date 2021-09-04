@@ -10,6 +10,7 @@
 # include <list>
 # include <map>
 # include <vector>
+# include <sstream>
 
 typedef bool (*t_validator)(std::string *error,
 						  std::list<std::string>::iterator *ctx);
@@ -70,6 +71,8 @@ class Parser {
 	// size_t			fsize_;
 	std::string		filebuff_;
 	std::list<std::string> tokens_;
+	const std::string validtokens;
+	const std::string whitespace;
 	// typedef struct s_helper{
 		// std::string	token;
 		// size_t		howmanyargs;

@@ -1,92 +1,84 @@
 #include "Parser.hpp"
-#include <sstream>
+
 Parser::~Parser(void) {
 }
 
-std::list<std::string> &Parser::lexer(const std::string &fileBuff)
-{
-	std::string filebuff = "{" + fileBuff + "}";
-	std::list<std::string> *tokens = new std::list<std::string>;
-	static const std::string validtokens = "{};";
-	size_t line = 1;
-	size_t i = 0;
+static void addStringLit(std::list<std::string> *tokens, std::string *filebuff,
+				  size_t *tokenend, size_t *line) {
+	std::string token;
+	char cmp;
 
-	std::cout << filebuff << std::endl;
-	std::cout << "==========================" << std::endl;
-	while (filebuff[0])
-	{
-		if (filebuff[0] == '"' || filebuff[0] == '\'')
-		{
-			char cmp = filebuff[0];
-			filebuff = filebuff.substr(1);
-			size_t tokenend = filebuff.find(cmp, 0);
-			if (tokenend == filebuff.npos){
-				throw SyntaxError("Unterminated quote in line", line);
-			}
-			else
-				tokens->push_back(filebuff.substr(0, tokenend));
-			std::string & last = tokens->back();
-			line += std::count(last.begin(), last.end(), '\n');
-			filebuff = filebuff.substr(tokenend + 1);
+	cmp = (*filebuff)[0];
+	*filebuff = filebuff->substr(1);
+	*tokenend = filebuff->find(cmp, 0);
+	if (*tokenend == filebuff->npos) {
+		throw Parser::SyntaxError("Unterminated quote in line", *line);
+	}
+	token = filebuff->substr(0, *tokenend);
+	tokens->push_back(token);
+	*line += std::count(token.begin(), token.end(), '\n');
+	(*tokenend)++;
+}
+
+static void addPunct(std::list<std::string> *tokens, std::string *filebuff,
+						 size_t *tokenend) {
+	char tmp[2];
+
+	tmp[0] = (*filebuff)[0];
+	tmp[1] = '\0';
+	tokens->push_back(tmp);
+	*tokenend = 1;
+}
+
+std::list<std::string> &Parser::lexer(const std::string &fileBuff) {
+	std::string filebuff = "{" + fileBuff + "}";  // add global scope
+	std::list<std::string> *tokens = new std::list<std::string>;
+	size_t line = 1;
+	size_t tokenend = 0;
+	std::string token;
+
+	while (filebuff[0]) {
+		filebuff = filebuff.substr(tokenend);
+		for (; filebuff[0] && whitespace.find(filebuff[0], 0) != whitespace.npos
+			 ; filebuff = filebuff.substr(1)) {
+			if (filebuff[0] == '\n')
+				line++;
+		}
+		if (filebuff[0] == '"' || filebuff[0] == '\'') {
+			addStringLit(tokens, &filebuff, &tokenend, &line);
 			continue;
 		}
-		// std::cout << filebuff[0]<< std::endl;
-		if (validtokens.find(filebuff[0], 0) != validtokens.npos)
-		{
-			char tmp[2];
-			tmp[0] = filebuff[0];
-			tmp[1] = '\0';
-			// std::string a(tmp);
-			tokens->push_back(tmp);
-			filebuff = filebuff.substr(1);
-			if (validtokens.find(filebuff[0], 0) != validtokens.npos)
-				continue;
-			size_t tokenstart = filebuff.find_first_not_of(" \t\f\n\r\t\v\n", 0);
-			if (tokenstart == std::string::npos)
-				tokenstart = filebuff.size();
-			std::string countlines = filebuff.substr(0, tokenstart);
-			line += std::count(countlines.begin(), countlines.end(), '\n');
-			filebuff = filebuff.substr(tokenstart);
+		if (validtokens.find(filebuff[0], 0) != validtokens.npos) {
+			addPunct(tokens, &filebuff, &tokenend);
 			continue;
 		}
-		size_t tokenend = filebuff.find_first_of(" \t\f\n\r\t\v\n{};", 0);
+		tokenend = filebuff.find_first_of(validtokens + whitespace, 0);
 		if (tokenend == filebuff.npos)
 			tokenend = filebuff.size();
-		// filebuff = filebuff.substr(tokenend);
-		std::string token = filebuff.substr(0, tokenend);
-		filebuff = filebuff.substr(tokenend);
-		tokens->push_back(token);
-		size_t tokenstart = filebuff.find_first_not_of(" \t\f\n\r\t\v\n", 0);
-		if (tokenstart == std::string::npos)
-			tokenstart = filebuff.size();
-		std::string countlines = filebuff.substr(0, tokenstart);
-		line += std::count(countlines.begin(), countlines.end(), '\n');
-		filebuff = filebuff.substr(tokenstart);
+		if ((token = filebuff.substr(0, tokenend)) != "")
+			tokens->push_back(token);
 	}
 	return *tokens;
 }
 
-std::string Parser::bufferFileStripComments(std::ifstream &file)
-{
+std::string Parser::bufferFileStripComments(std::ifstream &file) {
 	std::string buffer;
 	std::string filebuff;
 	bool	insidedquote = false;
 	bool	insidesquote = false;
 
-	while(std::getline(file, buffer))
-	{
+	while(std::getline(file, buffer)) {
 		size_t commentpos = buffer.npos;
-		for(unsigned int i = 0 ; i < buffer.size(); ++i)
-		{
+		for(unsigned int i = 0 ; i < buffer.size(); ++i) {
 			if (buffer[i] == '\'' && !insidedquote)
 				insidesquote ^= true;
 			else if (buffer[i] == '\"' && !insidesquote)
 				insidedquote ^= true;
-			else if (buffer[i] == '#' && !insidedquote && !insidesquote)
-			{
-				commentpos = i;
-				break;
-			}
+			else
+				if (buffer[i] == '#' && !insidedquote && !insidesquote) {
+					commentpos = i;
+					break;
+				}
 		}
 		if (commentpos == buffer.npos)
 			filebuff += buffer;
@@ -100,8 +92,9 @@ std::string Parser::bufferFileStripComments(std::ifstream &file)
 }
 
 Parser::Parser(const std::string &path)
-	: path_(path)  // , file_(path_, std::ios::binary)
-{
+	: path_(path),
+	validtokens("{};"),
+	whitespace(" \t\f\n\r\t\v\n") {
 	std::ifstream	file(path_.c_str(), std::ios::binary);
 	if (!file)
 		throw std::invalid_argument(strerror(errno));
