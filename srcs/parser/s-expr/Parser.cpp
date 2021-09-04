@@ -1,6 +1,7 @@
 #include "Parser.hpp"
 
 Parser::~Parser(void) {
+	delete tokens_;
 }
 
 static void addStringLit(std::list<std::string> *tokens, std::string *filebuff,
@@ -20,17 +21,17 @@ static void addStringLit(std::list<std::string> *tokens, std::string *filebuff,
 	(*tokenend)++;
 }
 
-static void addPunct(std::list<std::string> *tokens, std::string *filebuff,
-						 size_t *tokenend) {
+static void addPunct(std::list<std::string> *tokens, char type,
+					 size_t *tokenend) {
 	char tmp[2];
 
-	tmp[0] = (*filebuff)[0];
+	tmp[0] = type;
 	tmp[1] = '\0';
 	tokens->push_back(tmp);
 	*tokenend = 1;
 }
 
-std::list<std::string> &Parser::lexer(const std::string &fileBuff) {
+std::list<std::string> *Parser::lexer(const std::string &fileBuff) {
 	std::string filebuff = "{" + fileBuff + "}";  // add global scope
 	std::list<std::string> *tokens = new std::list<std::string>;
 	size_t line = 1;
@@ -49,7 +50,7 @@ std::list<std::string> &Parser::lexer(const std::string &fileBuff) {
 			continue;
 		}
 		if (validtokens.find(filebuff[0], 0) != validtokens.npos) {
-			addPunct(tokens, &filebuff, &tokenend);
+			addPunct(tokens, filebuff[0], &tokenend);
 			continue;
 		}
 		tokenend = filebuff.find_first_of(validtokens + whitespace, 0);
@@ -58,7 +59,7 @@ std::list<std::string> &Parser::lexer(const std::string &fileBuff) {
 		if ((token = filebuff.substr(0, tokenend)) != "")
 			tokens->push_back(token);
 	}
-	return *tokens;
+	return tokens;
 }
 
 std::string Parser::bufferFileStripComments(std::ifstream &file) {
@@ -94,7 +95,8 @@ std::string Parser::bufferFileStripComments(std::ifstream &file) {
 Parser::Parser(const std::string &path)
 	: path_(path),
 	validtokens("{};"),
-	whitespace(" \t\f\n\r\t\v\n") {
+	  whitespace(" \t\f\n\r\t\v\n"),
+	  tokens_(NULL) {
 	std::ifstream	file(path_.c_str(), std::ios::binary);
 	if (!file)
 		throw std::invalid_argument(strerror(errno));

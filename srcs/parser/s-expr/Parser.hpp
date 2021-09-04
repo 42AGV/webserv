@@ -53,7 +53,7 @@ class Parser {
 	virtual ~Parser(void);
 	Parser	&operator=(Parser const &rhs);
 	std::string bufferFileStripComments(std::ifstream &file);
-	std::list<std::string> &lexer(const std::string &fileBuff);
+	std::list<std::string> *lexer(const std::string &fileBuff);
 	class SyntaxError : public std::exception {
 	public:
 		virtual ~SyntaxError(void) _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW;
@@ -70,9 +70,9 @@ class Parser {
 	// std::ifstream	file_;
 	// size_t			fsize_;
 	std::string		filebuff_;
-	std::list<std::string> tokens_;
 	const std::string validtokens;
 	const std::string whitespace;
+	std::list<std::string> *tokens_;
 	// typedef struct s_helper{
 		// std::string	token;
 		// size_t		howmanyargs;
