@@ -1,5 +1,5 @@
 #include "Parser.hpp"
-
+#include <sstream>
 Parser::~Parser(void) {
 }
 
@@ -21,7 +21,6 @@ std::list<std::string> &Parser::lexer(const std::string &fileBuff)
 			filebuff = filebuff.substr(1);
 			size_t tokenend = filebuff.find(cmp, 0);
 			if (tokenend == filebuff.npos){
-				std::cerr << line << std::endl;
 				throw SyntaxError("Unterminated quote in line", line);
 			}
 			else
@@ -117,5 +116,11 @@ Parser::SyntaxError::SyntaxError(const std::string &error, size_t line)
 Parser::SyntaxError::~SyntaxError()  _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {}
 
 const char *Parser::SyntaxError::what() const throw() {
-	return error_.c_str();
+	static char error[50];
+
+	memset(error, '\0', sizeof(error));
+	std::ostringstream str;
+	str << error_.c_str() << " " << line_;
+	memcpy(error, str.str().c_str(), str.str().size());
+	return error;
 }
