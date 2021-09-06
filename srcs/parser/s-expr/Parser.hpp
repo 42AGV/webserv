@@ -52,7 +52,7 @@ class Parser {
 	Parser(Parser const &rhs);
 	virtual ~Parser(void);
 	Parser	&operator=(Parser const &rhs);
-	std::string bufferFileStripComments(std::ifstream &file);
+	std::string preprocessor(std::ifstream &file);
 	std::list<std::string> *lexer(const std::string &fileBuff);
 	class SyntaxError : public std::exception {
 	public:

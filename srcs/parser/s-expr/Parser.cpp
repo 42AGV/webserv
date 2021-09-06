@@ -13,6 +13,7 @@ static void addStringLit(std::list<std::string> *tokens, std::string *filebuff,
 	*filebuff = filebuff->substr(1);
 	*tokenend = filebuff->find(cmp, 0);
 	if (*tokenend == filebuff->npos) {
+		delete tokens;
 		throw Parser::SyntaxError("Unterminated quote in line", *line);
 	}
 	token = filebuff->substr(0, *tokenend);
@@ -62,7 +63,7 @@ std::list<std::string> *Parser::lexer(const std::string &fileBuff) {
 	return tokens;
 }
 
-std::string Parser::bufferFileStripComments(std::ifstream &file) {
+std::string Parser::preprocessor(std::ifstream &file) {
 	std::string buffer;
 	std::string filebuff;
 	bool	insidedquote = false;
@@ -100,7 +101,7 @@ Parser::Parser(const std::string &path)
 	std::ifstream	file(path_.c_str(), std::ios::binary);
 	if (!file)
 		throw std::invalid_argument(strerror(errno));
-	filebuff_ = bufferFileStripComments(file);
+	filebuff_ = preprocessor(file);
 	tokens_ = lexer(filebuff_);
 }
 
