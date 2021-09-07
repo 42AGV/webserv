@@ -67,9 +67,8 @@ std::list<std::string> *Lexer::GetTokens(void) const {
 	return tokens_;
 }
 
-Lexer::Lexer(const std::string &path, const std::string &filebuff)
-	: Analyser::Analyser(path),
-	validtokens("{};"),
+Lexer::Lexer(const std::string &filebuff)
+	: validtokens("{};"),
 	  whitespace(" \t\f\n\r\t\v\n"),
 	  tokens_(NULL) {
 	tokens_ = lexer(filebuff);

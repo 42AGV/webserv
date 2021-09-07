@@ -9,7 +9,7 @@
 
 class Analyser {
  public:
-	explicit Analyser(const std::string &path);
+	Analyser(void);
 	Analyser(Analyser const &rhs);
 	virtual ~Analyser(void);
 	Analyser	&operator=(Analyser const &rhs);
@@ -24,9 +24,7 @@ class Analyser {
 	};
 
  protected:
-	Analyser(void);
 	size_t					line_;
-	std::string				path_;
 };
 
 std::ostream &operator<<(std::ostream &o, Analyser const &i);

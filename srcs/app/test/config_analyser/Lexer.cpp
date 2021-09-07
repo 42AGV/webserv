@@ -37,7 +37,7 @@ TEST_CASE("Testing the tokenizer AKA lexer", "[parser]") {
 	try {
 		std::string path = "srcs/app/test/config_analyser/nginx_docker/vol/http.d/default.conf";
 		Preprocessor file(path);
-		Lexer lexed(path, file.GetFileBuffer());
+		Lexer lexed(file.GetFileBuffer());
 		std::list<std::string> *tokens = lexed.GetTokens();
 		std::list<std::string>::iterator it = tokens->begin();
 		for (; it != tokens->end(); ++it) {

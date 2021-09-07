@@ -20,6 +20,7 @@ class Preprocessor : public Analyser {
 	std::string preprocess(std::ifstream &file);
 	std::string &GetFileBuffer(void);
  private:
+	std::string				path_;
 	std::string				filebuff_;
 };
 

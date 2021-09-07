@@ -4,7 +4,7 @@ Preprocessor::~Preprocessor(void) {
 }
 
 Preprocessor::Preprocessor(const std::string &path)
-	: Analyser::Analyser(path) {
+	: path_(path) {
 	std::ifstream	file(path_.c_str(), std::ios::binary);
 	if (!file)
 		throw std::invalid_argument(strerror(errno));

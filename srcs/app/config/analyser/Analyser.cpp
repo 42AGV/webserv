@@ -1,11 +1,8 @@
 #include <Analyser.hpp>
 
-Analyser::~Analyser(void) {}
+Analyser::Analyser(void) {}
 
-Analyser::Analyser(const std::string &path)
-	: line_(0),
-	  path_(path) {
-}
+Analyser::~Analyser(void) {}
 
 Analyser::SyntaxError::SyntaxError(const std::string &error, size_t line)
 	: line_(line), error_(error) {
