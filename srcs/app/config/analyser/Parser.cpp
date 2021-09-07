@@ -1,4 +1,4 @@
-#include "Parser.hpp"
+#include <Parser.hpp>
 
 Parser::~Parser(void) {
 	delete tokens_;
