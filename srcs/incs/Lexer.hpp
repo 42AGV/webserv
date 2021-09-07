@@ -39,21 +39,13 @@ typedef enum e_id {
 
 class Lexer {
  public:
-	Lexer(const std::string &whitespace,
-		  const std::vector<std::string> &tokens);
- private:
-	std::string whitespace_;
-	std::vector<std::string> tokens_;
-};
-
-class Parser {
- public:
-	explicit Parser(const std::string &path);
-	Parser(Parser const &rhs);
-	virtual ~Parser(void);
-	Parser	&operator=(Parser const &rhs);
+	explicit Lexer(const std::string &path);
+	Lexer(Lexer const &rhs);
+	virtual ~Lexer(void);
+	Lexer	&operator=(Lexer const &rhs);
 	std::string preprocessor(std::ifstream &file);
 	std::list<std::string> *lexer(const std::string &fileBuff);
+	std::list<std::string> *GetTokens(void) const;
 	class SyntaxError : public std::exception {
 	public:
 		virtual ~SyntaxError(void) _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW;
@@ -64,26 +56,15 @@ class Parser {
 		std::string error_;
 	};
 
- public:
-	Parser(void);
-	std::string		path_;
-	// std::ifstream	file_;
-	// size_t			fsize_;
-	std::string		filebuff_;
-	const std::string validtokens;
-	const std::string whitespace;
-	std::list<std::string> *tokens_;
-	// typedef struct s_helper{
-		// std::string	token;
-		// size_t		howmanyargs;
-		// bool		expectscurly;
-		// bool		shouldstat;
-	//  t_validator validator;
-	//  std::list<std::string>	ctx;
-	// } t_syntaxhelper;
-	// static std::map<std::string, t_validator> validsyntax;
+ private:
+	Lexer(void);
+	std::string				path_;
+	std::string				filebuff_;
+	const std::string		validtokens;
+	const std::string		whitespace;
+	std::list<std::string>	*tokens_;
 };
 
-std::ostream &operator<<(std::ostream &o, Parser const &i);
+std::ostream &operator<<(std::ostream &o, Lexer const &i);
 
 #endif

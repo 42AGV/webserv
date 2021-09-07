@@ -2,7 +2,7 @@
 #include <StringUtils.hpp>
 #include <catch2.hpp>
 #include <sstream>
-#include <Parser.hpp>
+#include <Lexer.hpp>
 
 TEST_CASE("Testing the tokenizer AKA lexer", "[parser]") {
 	std::string expected_result("{\n"
@@ -34,8 +34,8 @@ TEST_CASE("Testing the tokenizer AKA lexer", "[parser]") {
 								"}\n");
 	std::ostringstream result;
 	try {
-		Parser parser("srcs/app/test/config_analyser/nginx_docker/vol/http.d/default.conf");
-		std::list<std::string> *tokens = parser.tokens_;
+		Lexer parser("srcs/app/test/config_analyser/nginx_docker/vol/http.d/default.conf");
+		std::list<std::string> *tokens = parser.GetTokens();
 		std::list<std::string>::iterator it = tokens->begin();
 		for (; it != tokens->end(); ++it) {
 			result << *it << "\n";

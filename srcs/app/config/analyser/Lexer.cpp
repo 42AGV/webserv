@@ -1,6 +1,6 @@
-#include <Parser.hpp>
+#include <Lexer.hpp>
 
-Parser::~Parser(void) {
+Lexer::~Lexer(void) {
 	delete tokens_;
 }
 
@@ -14,7 +14,7 @@ static void addStringLit(std::list<std::string> *tokens, std::string *filebuff,
 	*tokenend = filebuff->find(cmp, 0);
 	if (*tokenend == filebuff->npos) {
 		delete tokens;
-		throw Parser::SyntaxError("Unterminated quote in line", *line);
+		throw Lexer::SyntaxError("Unterminated quote in line", *line);
 	}
 	token = filebuff->substr(0, *tokenend);
 	tokens->push_back(token);
@@ -32,7 +32,7 @@ static void addPunct(std::list<std::string> *tokens, char type,
 	*tokenend = 1;
 }
 
-std::list<std::string> *Parser::lexer(const std::string &fileBuff) {
+std::list<std::string> *Lexer::lexer(const std::string &fileBuff) {
 	std::string filebuff = "{" + fileBuff + "}";  // add global scope
 	std::list<std::string> *tokens = new std::list<std::string>;
 	size_t line = 1;
@@ -63,7 +63,7 @@ std::list<std::string> *Parser::lexer(const std::string &fileBuff) {
 	return tokens;
 }
 
-std::string Parser::preprocessor(std::ifstream &file) {
+std::string Lexer::preprocessor(std::ifstream &file) {
 	std::string buffer;
 	std::string filebuff;
 	bool	insidedquote = false;
@@ -93,7 +93,10 @@ std::string Parser::preprocessor(std::ifstream &file) {
 	return filebuff;
 }
 
-Parser::Parser(const std::string &path)
+std::list<std::string> *Lexer::GetTokens(void) const {
+	return tokens_;
+}
+Lexer::Lexer(const std::string &path)
 	: path_(path),
 	validtokens("{};"),
 	  whitespace(" \t\f\n\r\t\v\n"),
@@ -105,13 +108,13 @@ Parser::Parser(const std::string &path)
 	tokens_ = lexer(filebuff_);
 }
 
-Parser::SyntaxError::SyntaxError(const std::string &error, size_t line)
+Lexer::SyntaxError::SyntaxError(const std::string &error, size_t line)
 	: line_(line), error_(error) {
 }
 
-Parser::SyntaxError::~SyntaxError()  _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {}
+Lexer::SyntaxError::~SyntaxError()  _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {}
 
-const char *Parser::SyntaxError::what() const throw() {
+const char *Lexer::SyntaxError::what() const throw() {
 	static char error[50];
 
 	memset(error, '\0', sizeof(error));
