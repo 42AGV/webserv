@@ -14,7 +14,7 @@ static void addStringLit(std::list<std::string> *tokens, std::string *filebuff,
 	*tokenend = filebuff->find(cmp, 0);
 	if (*tokenend == filebuff->npos) {
 		delete tokens;
-		throw Lexer::SyntaxError("Unterminated quote in line", *line);
+		throw Analyser::SyntaxError("Unterminated quote in line", *line);
 	}
 	token = filebuff->substr(0, *tokenend);
 	tokens->push_back(token);
@@ -96,8 +96,9 @@ std::string Lexer::preprocessor(std::ifstream &file) {
 std::list<std::string> *Lexer::GetTokens(void) const {
 	return tokens_;
 }
+
 Lexer::Lexer(const std::string &path)
-	: path_(path),
+	: Analyser::Analyser(path),
 	validtokens("{};"),
 	  whitespace(" \t\f\n\r\t\v\n"),
 	  tokens_(NULL) {
@@ -106,20 +107,4 @@ Lexer::Lexer(const std::string &path)
 		throw std::invalid_argument(strerror(errno));
 	filebuff_ = preprocessor(file);
 	tokens_ = lexer(filebuff_);
-}
-
-Lexer::SyntaxError::SyntaxError(const std::string &error, size_t line)
-	: line_(line), error_(error) {
-}
-
-Lexer::SyntaxError::~SyntaxError()  _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {}
-
-const char *Lexer::SyntaxError::what() const throw() {
-	static char error[50];
-
-	memset(error, '\0', sizeof(error));
-	std::ostringstream str;
-	str << error_.c_str() << " " << line_;
-	memcpy(error, str.str().c_str(), str.str().size());
-	return error;
 }

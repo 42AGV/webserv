@@ -1,5 +1,5 @@
-#ifndef PARSER_HPP
-# define PARSER_HPP
+#ifndef SRCS_INCS_LEXER_HPP_
+#define SRCS_INCS_LEXER_HPP_
 
 # include <iostream>
 # include <fstream>
@@ -11,6 +11,7 @@
 # include <map>
 # include <vector>
 # include <sstream>
+# include <Analyser.hpp>
 
 typedef bool (*t_validator)(std::string *error,
 						  std::list<std::string>::iterator *ctx);
@@ -37,28 +38,14 @@ typedef enum e_id {
 	T_END  //;
 } t_tokentype;
 
-class Lexer {
+class Lexer : public Analyser {
  public:
 	explicit Lexer(const std::string &path);
-	Lexer(Lexer const &rhs);
 	virtual ~Lexer(void);
-	Lexer	&operator=(Lexer const &rhs);
 	std::string preprocessor(std::ifstream &file);
 	std::list<std::string> *lexer(const std::string &fileBuff);
 	std::list<std::string> *GetTokens(void) const;
-	class SyntaxError : public std::exception {
-	public:
-		virtual ~SyntaxError(void) _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW;
-		explicit SyntaxError(const std::string &error, size_t line);
-		virtual const char *what() const throw();
-	private:
-		size_t		line_;
-		std::string error_;
-	};
-
  private:
-	Lexer(void);
-	std::string				path_;
 	std::string				filebuff_;
 	const std::string		validtokens;
 	const std::string		whitespace;
@@ -67,4 +54,4 @@ class Lexer {
 
 std::ostream &operator<<(std::ostream &o, Lexer const &i);
 
-#endif
+#endif  // SRCS_INCS_LEXER_HPP_
