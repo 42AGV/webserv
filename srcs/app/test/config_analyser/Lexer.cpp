@@ -3,6 +3,7 @@
 #include <catch2.hpp>
 #include <sstream>
 #include <Lexer.hpp>
+#include <Preprocessor.hpp>
 
 TEST_CASE("Testing the tokenizer AKA lexer", "[parser]") {
 	std::string expected_result("{\n"
@@ -34,8 +35,10 @@ TEST_CASE("Testing the tokenizer AKA lexer", "[parser]") {
 								"}\n");
 	std::ostringstream result;
 	try {
-		Lexer parser("srcs/app/test/config_analyser/nginx_docker/vol/http.d/default.conf");
-		std::list<std::string> *tokens = parser.GetTokens();
+		std::string path = "srcs/app/test/config_analyser/nginx_docker/vol/http.d/default.conf";
+		Preprocessor file(path);
+		Lexer lexed(path, file.GetFileBuffer());
+		std::list<std::string> *tokens = lexed.GetTokens();
 		std::list<std::string>::iterator it = tokens->begin();
 		for (; it != tokens->end(); ++it) {
 			result << *it << "\n";

@@ -40,13 +40,11 @@ typedef enum e_id {
 
 class Lexer : public Analyser {
  public:
-	explicit Lexer(const std::string &path);
+	explicit Lexer(const std::string &path, const std::string &filebuff);
 	virtual ~Lexer(void);
-	std::string preprocessor(std::ifstream &file);
 	std::list<std::string> *lexer(const std::string &fileBuff);
 	std::list<std::string> *GetTokens(void) const;
  private:
-	std::string				filebuff_;
 	const std::string		validtokens;
 	const std::string		whitespace;
 	std::list<std::string>	*tokens_;
