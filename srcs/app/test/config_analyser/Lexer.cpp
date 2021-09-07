@@ -3,6 +3,7 @@
 #include <catch2.hpp>
 #include <sstream>
 #include <Lexer.hpp>
+#include <Token.hpp>
 #include <Preprocessor.hpp>
 
 TEST_CASE("Testing the tokenizer AKA lexer", "[parser]") {
@@ -35,15 +36,23 @@ TEST_CASE("Testing the tokenizer AKA lexer", "[parser]") {
 								"}\n");
 	std::ostringstream result;
 	try {
-		std::string path = "srcs/app/test/config_analyser/nginx_docker/vol/http.d/default.conf";
+		std::string path = "srcs/app/test/config_analyser/"
+			"nginx_docker/vol/http.d/default.conf";
 		Preprocessor file(path);
 		Lexer lexed(file.GetFileBuffer());
-		std::list<std::string> *tokens = lexed.GetTokens();
-		std::list<std::string>::iterator it = tokens->begin();
+		std::list<Token> *tokens = lexed.GetTokens();
+		std::list<Token>::iterator it = tokens->begin();
 		for (; it != tokens->end(); ++it) {
-			result << *it << "\n";
+			result << it->getRawData() << "\n";
 		}
 		REQUIRE(expected_result == result.str());
+#ifdef DBG
+		it = tokens->begin();
+		for (; it != tokens->end(); ++it) {
+			std::cout << it->getRawData() << " type: "
+					  << it->GetTokenTypeStr() << "\n";
+		}
+#endif
 	} catch(const std::exception &e) {
 		FAIL(e.what());
 	}

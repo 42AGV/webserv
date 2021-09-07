@@ -12,6 +12,7 @@
 # include <vector>
 # include <sstream>
 # include <Analyser.hpp>
+# include <Token.hpp>
 
 typedef bool (*t_validator)(std::string *error,
 						  std::list<std::string>::iterator *ctx);
@@ -20,12 +21,12 @@ class Lexer : public Analyser {
  public:
 	explicit Lexer(const std::string &filebuff);
 	virtual ~Lexer(void);
-	std::list<std::string> *lexer(const std::string &fileBuff);
-	std::list<std::string> *GetTokens(void) const;
+	std::list<Token> *lexer(const std::string &fileBuff);
+	std::list<Token> *GetTokens(void) const;
  private:
 	const std::string		validtokens;
 	const std::string		whitespace;
-	std::list<std::string>	*tokens_;
+	std::list<Token>	*tokens_;
 };
 
 std::ostream &operator<<(std::ostream &o, Lexer const &i);

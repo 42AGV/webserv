@@ -4,12 +4,15 @@ Lexer::~Lexer(void) {
 	delete tokens_;
 }
 
-static void addStringLit(std::list<std::string> *tokens, std::string *filebuff,
+static void addStringLit(std::list<Token> *tokens, std::string *filebuff,
 				  size_t *tokenend, size_t *line) {
 	std::string token;
 	char cmp;
+	t_token_type type;
 
 	cmp = (*filebuff)[0];
+	type = (cmp == '\'' ?	TokenType::T_STR_IMMEDIATE_T1:
+							TokenType::T_STR_IMMEDIATE_T0);
 	*filebuff = filebuff->substr(1);
 	*tokenend = filebuff->find(cmp, 0);
 	if (*tokenend == filebuff->npos) {
@@ -17,24 +20,33 @@ static void addStringLit(std::list<std::string> *tokens, std::string *filebuff,
 		throw Analyser::SyntaxError("Unterminated quote in line", *line);
 	}
 	token = filebuff->substr(0, *tokenend);
-	tokens->push_back(token);
+	tokens->push_back(Token(token, type));
 	*line += std::count(token.begin(), token.end(), '\n');
 	(*tokenend)++;
 }
 
-static void addPunct(std::list<std::string> *tokens, char type,
-					 size_t *tokenend) {
-	char tmp[2];
+static void addPunct(std::list<Token> *tokens, char type,
+					 size_t *tokenend, size_t line) {
+	char			tmp[2];
+	t_token_type	ttype;
 
+	if (type == ';')
+		ttype = TokenType::T_END;
+	else if (type == '{')
+		ttype = TokenType::T_SCOPE_OPEN;
+	else if (type == '}')
+		ttype = TokenType::T_SCOPE_CLOSE;
+	else
+		throw Analyser::SyntaxError("Unexpected token near line", line);
 	tmp[0] = type;
 	tmp[1] = '\0';
-	tokens->push_back(tmp);
+	tokens->push_back(Token(tmp, ttype));
 	*tokenend = 1;
 }
 
-std::list<std::string> *Lexer::lexer(const std::string &fileBuff) {
+std::list<Token> *Lexer::lexer(const std::string &fileBuff) {
 	std::string filebuff = "{" + fileBuff + "}";  // add global scope
-	std::list<std::string> *tokens = new std::list<std::string>;
+	std::list<Token> *tokens = new std::list<Token>;
 	size_t line = 1;
 	size_t tokenend = 0;
 	std::string token;
@@ -51,19 +63,19 @@ std::list<std::string> *Lexer::lexer(const std::string &fileBuff) {
 			continue;
 		}
 		if (validtokens.find(filebuff[0], 0) != validtokens.npos) {
-			addPunct(tokens, filebuff[0], &tokenend);
+			addPunct(tokens, filebuff[0], &tokenend, line);
 			continue;
 		}
 		tokenend = filebuff.find_first_of(validtokens + whitespace, 0);
 		if (tokenend == filebuff.npos)
 			tokenend = filebuff.size();
 		if ((token = filebuff.substr(0, tokenend)) != "")
-			tokens->push_back(token);
+			tokens->push_back(Token(token, TokenType::T_SYMBOL));
 	}
 	return tokens;
 }
 
-std::list<std::string> *Lexer::GetTokens(void) const {
+std::list<Token> *Lexer::GetTokens(void) const {
 	return tokens_;
 }
 
