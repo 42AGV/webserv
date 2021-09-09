@@ -10,7 +10,7 @@ struct ServerConfig {
 	uint32_t					listen_address;
 	uint16_t					listen_port;
 	std::vector<std::string>	server_name;
-	CommonConfig				common;
+	CommonConfig				common;  // public? should have a getter?
 
 	// A server can have multiple locations
 	std::vector<Location>		locations;

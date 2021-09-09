@@ -10,7 +10,7 @@ class Config {
 
 	public:
 		bool	LoadFile(const std::string &pathname);
-		std::queue<ServerConfig>	GetServersSettings() const;
+		std::queue<ServerConfig>	&GetServersSettings();
 };
 
 #endif  // SRCS_INCS_CONFIG_HPP_

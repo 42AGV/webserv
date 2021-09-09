@@ -10,6 +10,6 @@ bool	Config::LoadFile(const std::string &pathname) {
 	return false;
 }
 
-std::queue<ServerConfig>	Config::GetServersSettings() const {
+std::queue<ServerConfig>	&Config::GetServersSettings() {
 	return servers_settings_;
 }

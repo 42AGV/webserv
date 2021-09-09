@@ -23,4 +23,6 @@ class TokenType {
 	static const char *str_map[10];
 };
 
+typedef TokenType::e_id t_token_type;
+
 #endif  // SRCS_INCS_TOKENTYPE_HPP_

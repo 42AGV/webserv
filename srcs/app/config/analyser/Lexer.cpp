@@ -20,7 +20,7 @@ static void addStringLit(std::list<Token> *tokens, std::string *filebuff,
 		throw Analyser::SyntaxError("Unterminated quote in line", *line);
 	}
 	token = filebuff->substr(0, *tokenend);
-	tokens->push_back(Token(token, type));
+	tokens->push_back(Token(token, type, *line));
 	*line += std::count(token.begin(), token.end(), '\n');
 	(*tokenend)++;
 }
@@ -40,7 +40,7 @@ static void addPunct(std::list<Token> *tokens, char type,
 		throw Analyser::SyntaxError("Unexpected token near line", line);
 	tmp[0] = type;
 	tmp[1] = '\0';
-	tokens->push_back(Token(tmp, ttype));
+	tokens->push_back(Token(tmp, ttype, line));
 	*tokenend = 1;
 }
 
@@ -70,7 +70,7 @@ std::list<Token> *Lexer::lexer(const std::string &fileBuff) {
 		if (tokenend == filebuff.npos)
 			tokenend = filebuff.size();
 		if ((token = filebuff.substr(0, tokenend)) != "")
-			tokens->push_back(Token(token, TokenType::T_SYMBOL));
+			tokens->push_back(Token(token, TokenType::T_SYMBOL, line));
 	}
 	return tokens;
 }
