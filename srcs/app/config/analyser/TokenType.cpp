@@ -1,4 +1,4 @@
-#include <TokenType.hpp>
+#include <parser/TokenType.hpp>
 
 std::string TokenType::GetTokenTypeStr(enum e_id type) {
 	std::string retval("unknown");

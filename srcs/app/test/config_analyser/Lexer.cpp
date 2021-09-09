@@ -2,9 +2,9 @@
 #include <StringUtils.hpp>
 #include <catch2.hpp>
 #include <sstream>
-#include <Lexer.hpp>
-#include <Token.hpp>
-#include <Preprocessor.hpp>
+#include <parser/Lexer.hpp>
+#include <parser/Token.hpp>
+#include <parser/Preprocessor.hpp>
 
 TEST_CASE("Testing the tokenizer AKA lexer", "[parser]") {
 	std::string expected_result("{\n"

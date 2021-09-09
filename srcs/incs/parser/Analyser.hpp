@@ -1,5 +1,5 @@
-#ifndef SRCS_INCS_ANALYSER_HPP_
-#define SRCS_INCS_ANALYSER_HPP_
+#ifndef SRCS_INCS_PARSER_ANALYSER_HPP_
+#define SRCS_INCS_PARSER_ANALYSER_HPP_
 
 # include <iostream>
 # include <fstream>
@@ -29,4 +29,4 @@ class Analyser {
 
 std::ostream &operator<<(std::ostream &o, Analyser const &i);
 
-#endif  // SRCS_INCS_ANALYSER_HPP_
+#endif  // SRCS_INCS_PARSER_ANALYSER_HPP_

@@ -1,4 +1,4 @@
-#include <Lexer.hpp>
+#include <parser/Lexer.hpp>
 
 Lexer::~Lexer(void) {
 	delete tokens_;

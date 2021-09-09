@@ -1,5 +1,5 @@
-#ifndef SRCS_INCS_PARSINGSTATETYPE_HPP_
-#define SRCS_INCS_PARSINGSTATETYPE_HPP_
+#ifndef SRCS_INCS_PARSER_PARSINGSTATETYPE_HPP_
+#define SRCS_INCS_PARSER_PARSINGSTATETYPE_HPP_
 
 #include <string>
 #include <iostream>
@@ -30,4 +30,4 @@ class ParsingStateType {
 
 typedef ParsingStateType::e_id t_parsing_state;
 
-#endif  // SRCS_INCS_PARSINGSTATETYPE_HPP_
+#endif  // SRCS_INCS_PARSER_PARSINGSTATETYPE_HPP_

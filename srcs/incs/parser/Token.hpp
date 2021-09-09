@@ -1,9 +1,9 @@
-#ifndef SRCS_INCS_TOKEN_HPP_
-#define SRCS_INCS_TOKEN_HPP_
+#ifndef SRCS_INCS_PARSER_TOKEN_HPP_
+#define SRCS_INCS_PARSER_TOKEN_HPP_
 
 #include <string>
 #include <iostream>
-#include <TokenType.hpp>
+#include <parser/TokenType.hpp>
 
 class Token {
  protected:
@@ -18,4 +18,4 @@ class Token {
 	size_t GetLine(void) const;
 };
 
-#endif  // SRCS_INCS_TOKEN_HPP_
+#endif  // SRCS_INCS_PARSER_TOKEN_HPP_

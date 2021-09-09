@@ -1,17 +1,17 @@
-#ifndef SRCS_INCS_PARSER_HPP_
-#define SRCS_INCS_PARSER_HPP_
+#ifndef SRCS_INCS_PARSER_PARSER_HPP_
+#define SRCS_INCS_PARSER_PARSER_HPP_
 
 #include <string>
 #include <list>
 #include <queue>
 #include <stack>
-#include <TokenType.hpp>
-#include <KeywordType.hpp>
-#include <Lexer.hpp>
-#include <Config.hpp>
-#include <ParsingStateType.hpp>
-#include <ParsingEvents.hpp>
+#include <parser/TokenType.hpp>
+#include <parser/KeywordType.hpp>
+#include <parser/Lexer.hpp>
+#include <parser/ParsingStateType.hpp>
+#include <parser/ParsingEvents.hpp>
 #include <ServerConfig.hpp>
+#include <Config.hpp>
 
 class Parser: public Analyser {
  public:
@@ -31,4 +31,4 @@ class Parser: public Analyser {
 	std::stack<t_keyword>	ctx_;
 };
 
-#endif  // SRCS_INCS_PARSER_HPP_
+#endif  // SRCS_INCS_PARSER_PARSER_HPP_

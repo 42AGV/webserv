@@ -1,9 +1,9 @@
-#ifndef SRCS_INCS_KEYWORDTYPE_HPP_
-#define SRCS_INCS_KEYWORDTYPE_HPP_
+#ifndef SRCS_INCS_PARSER_KEYWORDTYPE_HPP_
+#define SRCS_INCS_PARSER_KEYWORDTYPE_HPP_
 
+#include <stdint.h>
 #include <string>
 #include <iostream>
-#include <stdint.h>
 
 class KeywordType {
  public:
@@ -32,4 +32,4 @@ class KeywordType {
 
 typedef KeywordType::e_id t_keyword;
 
-#endif  // SRCS_INCS_KEYWORDTYPE_HPP_
+#endif  // SRCS_INCS_PARSER_KEYWORDTYPE_HPP_

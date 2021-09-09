@@ -1,10 +1,10 @@
-#ifndef SRCS_INCS_PARSINGEVENTS_HPP_
-#define SRCS_INCS_PARSINGEVENTS_HPP_
+#ifndef SRCS_INCS_PARSER_PARSINGEVENTS_HPP_
+#define SRCS_INCS_PARSER_PARSINGEVENTS_HPP_
 
 #include <dirent.h>
 #include <string>
-#include <Token.hpp>
-#include <KeywordType.hpp>
+#include <parser/Token.hpp>
+#include <parser/KeywordType.hpp>
 // ????? Events should be Keywords and keywords should be states ?????
 
 class ParsingEvents {
@@ -33,4 +33,4 @@ class ParsingEvents {
 
 typedef ParsingEvents::e_id t_Ev;
 
-#endif  // SRCS_INCS_PARSINGEVENTS_HPP_
+#endif  // SRCS_INCS_PARSER_PARSINGEVENTS_HPP_

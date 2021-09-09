@@ -1,5 +1,5 @@
-#ifndef SRCS_INCS_PREPROCESSOR_HPP_
-#define SRCS_INCS_PREPROCESSOR_HPP_
+#ifndef SRCS_INCS_PARSER_PREPROCESSOR_HPP_
+#define SRCS_INCS_PARSER_PREPROCESSOR_HPP_
 
 # include <iostream>
 # include <fstream>
@@ -11,7 +11,7 @@
 # include <map>
 # include <vector>
 # include <sstream>
-# include <Analyser.hpp>
+# include <parser/Analyser.hpp>
 
 class Preprocessor : public Analyser {
  public:
@@ -26,4 +26,4 @@ class Preprocessor : public Analyser {
 
 std::ostream &operator<<(std::ostream &o, Preprocessor const &i);
 
-#endif  // SRCS_INCS_PREPROCESSOR_HPP_
+#endif  // SRCS_INCS_PARSER_PREPROCESSOR_HPP_

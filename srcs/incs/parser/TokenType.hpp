@@ -1,5 +1,5 @@
-#ifndef SRCS_INCS_TOKENTYPE_HPP_
-#define SRCS_INCS_TOKENTYPE_HPP_
+#ifndef SRCS_INCS_PARSER_TOKENTYPE_HPP_
+#define SRCS_INCS_PARSER_TOKENTYPE_HPP_
 
 #include <string>
 #include <iostream>
@@ -25,4 +25,4 @@ class TokenType {
 
 typedef TokenType::e_id t_token_type;
 
-#endif  // SRCS_INCS_TOKENTYPE_HPP_
+#endif  // SRCS_INCS_PARSER_TOKENTYPE_HPP_

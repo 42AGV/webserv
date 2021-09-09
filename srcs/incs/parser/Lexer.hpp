@@ -1,5 +1,5 @@
-#ifndef SRCS_INCS_LEXER_HPP_
-#define SRCS_INCS_LEXER_HPP_
+#ifndef SRCS_INCS_PARSER_LEXER_HPP_
+#define SRCS_INCS_PARSER_LEXER_HPP_
 
 # include <iostream>
 # include <fstream>
@@ -11,8 +11,8 @@
 # include <map>
 # include <vector>
 # include <sstream>
-# include <Analyser.hpp>
-# include <Token.hpp>
+# include <parser/Analyser.hpp>
+# include <parser/Token.hpp>
 
 typedef bool (*t_validator)(std::string *error,
 						  std::list<std::string>::iterator *ctx);
@@ -31,4 +31,4 @@ class Lexer : public Analyser {
 
 std::ostream &operator<<(std::ostream &o, Lexer const &i);
 
-#endif  // SRCS_INCS_LEXER_HPP_
+#endif  // SRCS_INCS_PARSER_LEXER_HPP_

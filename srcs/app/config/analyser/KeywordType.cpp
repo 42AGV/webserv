@@ -1,4 +1,4 @@
-#include <KeywordType.hpp>
+#include <parser/KeywordType.hpp>
 
 std::string KeywordType::GetKeywordTypeStr(enum e_id type) {
 	std::string retval("");
