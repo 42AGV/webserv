@@ -21,6 +21,8 @@ class Parser: public Analyser {
 	void HandleServerEvents(ServerConfig *config);
 	void parse(void);
  private:
+	void ResetArgNumber(void);
+	void StateHandlerServerName(void);
 	std::queue<ServerConfig> *server_settings_;
 	t_parsing_state state_;
 	const std::list<Token> &tokens_;

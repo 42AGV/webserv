@@ -25,33 +25,11 @@ void Parser::HandleLocationEvents(Location *location) {
 			state_ = ParsingStateType::K_EXP_KW;
 			break;
 		}
-		case ParsingStateType::K_LISTEN:				 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_SERVER_NAME:			 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_ROOT:					 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_CLIENT_MAX_BODY_SIZE:	 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_ERROR_PAGE:			 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_RETURN:				 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_AUTOINDEX:				 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_INDEX:					 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_UPLOAD_STORE:			 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_CGI_ASSIGN:			 // fill this up
-			break;										 // fill this up
-		case ParsingStateType::K_LIMIT_EXCEPT:			 // fill this up
-			break;										 // fill this up
 		case ParsingStateType::K_EXP_KW : {
 			if (event == ParsingEvents::CLOSE) {
 				return;
 			} else {
-				if (event != ParsingEvents::KEYWORD_SERV_CTX) {
+				if (event != ParsingEvents::KEYWORD_LOC_CTX) {
 					throw Analyser::SyntaxError("Invalid keyword "
 												"in line", line);
 				} else {
@@ -60,13 +38,31 @@ void Parser::HandleLocationEvents(Location *location) {
 			}
 			break;
 		}
-		case ParsingStateType::K_EXP_SEMIC:  {
+		case ParsingStateType::K_EXP_SEMIC: {
 			if (event != ParsingEvents::SEMIC)
 				throw Analyser::SyntaxError("Invalid Token "
 											"in line", line);
 			state_ = ParsingStateType::K_EXP_KW;
 			break;
 		}
+		case ParsingStateType::K_AUTOINDEX: {
+			if (event != ParsingEvents::ON_OFF)
+				throw Analyser::SyntaxError("Invalid Token "
+											"in line", line);
+			location->common.autoindex = false;
+			if (itc_->getRawData() == "on")
+				location->common.autoindex = true;
+			state_ = ParsingStateType::K_EXP_SEMIC;
+			break;
+		}
+		case ParsingStateType::K_ROOT:					 // fill this up
+		case ParsingStateType::K_CLIENT_MAX_BODY_SIZE:	 // fill this up
+		case ParsingStateType::K_ERROR_PAGE:			 // fill this up
+		case ParsingStateType::K_RETURN:				 // fill this up
+		case ParsingStateType::K_INDEX:					 // fill this up
+		case ParsingStateType::K_UPLOAD_STORE:			 // fill this up
+		case ParsingStateType::K_CGI_ASSIGN:			 // fill this up
+		case ParsingStateType::K_LIMIT_EXCEPT:			 // fill this up
 		default:
 			throw Analyser::SyntaxError("Invalid keyword "
 										"in line", line);
@@ -75,6 +71,26 @@ void Parser::HandleLocationEvents(Location *location) {
 		if (itc_ == ite_)
 			throw Analyser::SyntaxError("Unexpected end of file", line);
 	}
+}
+
+void Parser::StateHandlerServerName(void) {
+	static size_t args = 0;
+	size_t line = itc_->GetLine();
+	t_Ev event = ParsingEvents::GetEvent(*itc_);
+
+	if (args == 0 && event == ParsingEvents::SEMIC)
+		throw Analyser::SyntaxError("invalid number of arguments in "
+									"\"server_name\" directive:", line);
+	if (event == ParsingEvents::SEMIC) {
+		state_ = ParsingStateType::K_EXP_KW;
+		args = 0;
+		return;
+	}
+	if (event != ParsingEvents::URL)
+		throw Analyser::SyntaxError("Invalid type of argument in line", line);
+	else
+		server_settings_->back().server_name.push_back(itc_->getRawData());
+	args++;
 }
 
 void Parser::HandleServerEvents(ServerConfig *config) {
@@ -99,6 +115,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 				ctx_.push(KeywordType::LOCATION);
 				location.path = itc_->getRawData();
 				state_ = ParsingStateType::K_INIT;
+				itc_++;
 				HandleLocationEvents(&location);
 				config->locations.push_back(location);
 				state_ = ParsingStateType::K_EXP_KW;
@@ -107,28 +124,10 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 			}
 			break;
 		}
-		case ParsingStateType::K_LISTEN:				// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_SERVER_NAME:			// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_ROOT:					// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_CLIENT_MAX_BODY_SIZE:	// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_ERROR_PAGE:			// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_RETURN:				// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_AUTOINDEX:				// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_INDEX:					// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_UPLOAD_STORE:			// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_CGI_ASSIGN:			// fill this up
-			break;										// fill this up
-		case ParsingStateType::K_LIMIT_EXCEPT:			// fill this up
-			break;										// fill this up
+		case ParsingStateType::K_SERVER_NAME: {
+			StateHandlerServerName();
+			break;
+		}
 		case ParsingStateType::K_EXP_KW : {
 			if (event == ParsingEvents::CLOSE) {
 				return;
@@ -142,8 +141,22 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 			}
 			break;
 		}
-		case ParsingStateType::K_EXP_SEMIC:
+		case ParsingStateType::K_EXP_SEMIC: {
+			if (event != ParsingEvents::SEMIC)
+				throw Analyser::SyntaxError("Invalid Token "
+											"in line", line);
+			state_ = ParsingStateType::K_EXP_KW;
 			break;
+		}
+		case ParsingStateType::K_LISTEN:				// fill this up
+		case ParsingStateType::K_ROOT:					// fill this up
+		case ParsingStateType::K_CLIENT_MAX_BODY_SIZE:  // fill this up
+		case ParsingStateType::K_ERROR_PAGE:			// fill this up
+		case ParsingStateType::K_RETURN:				// fill this up
+		case ParsingStateType::K_AUTOINDEX:				// fill this up
+		case ParsingStateType::K_INDEX:					// fill this up
+		case ParsingStateType::K_UPLOAD_STORE:			// fill this up
+		case ParsingStateType::K_CGI_ASSIGN:			// fill this up
 		default:
 			throw Analyser::SyntaxError("Invalid keyword "
 											"in line", line);

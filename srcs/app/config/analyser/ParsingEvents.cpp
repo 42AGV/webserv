@@ -21,7 +21,7 @@ static bool isDir(const std::string &str) {
 }
 
 static bool isSize(const std::string &str) {
-	return str == "1m";
+	return str == "1m";  // configure to use only bytes
 }
 
 static bool isUri(const std::string &str) {
@@ -46,14 +46,16 @@ static bool isMethod(const std::string &str) {
 
 static bool isKwLoc(const std::string &str) {
 	t_keyword kw = KeywordType::GetKeywordTypeEnum(str);
-	if (kw > KeywordType::NONE && kw < KeywordType::ERROR_PAGE)
+	if ((KeywordType::NONE < kw && kw < KeywordType::LAST_INVALID_KEYWORD)
+		&& kw != KeywordType::LISTEN && kw != KeywordType::SERVER_NAME)
 		return true;
 	return false;
 }
 
 static bool isKwServ(const std::string &str) {
 	t_keyword kw = KeywordType::GetKeywordTypeEnum(str);
-	if (kw > KeywordType::ERROR_PAGE && kw < KeywordType::LAST_INVALID_KEYWORD)
+	if ((KeywordType::NONE < kw && kw < KeywordType::LAST_INVALID_KEYWORD)
+		&& kw != KeywordType::LIMIT_EXCEPT)
 		return true;
 	return false;
 }

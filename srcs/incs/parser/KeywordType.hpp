@@ -10,8 +10,8 @@ class KeywordType {
 	enum e_id {
 		NONE,
 		SERVER,
-		LISTEN,
-		SERVER_NAME,
+		LISTEN,		  // S pero no Loc
+		SERVER_NAME,  // S pero no Loc
 		ROOT,
 		CLIENT_MAX_BODY_SIZE,
 		ERROR_PAGE,
@@ -19,9 +19,9 @@ class KeywordType {
 		AUTOINDEX,
 		INDEX,
 		UPLOAD_STORE,
-		CGI_ASSIGN,
+		CGI_ASSIGN,  // dependiendo de la extension del path ejecuta la peticion con un binario distinto
 		LOCATION,
-		LIMIT_EXCEPT,
+		LIMIT_EXCEPT, // Solo location
 		LAST_INVALID_KEYWORD
 	};
 	static std::string GetKeywordTypeStr(enum e_id type);
