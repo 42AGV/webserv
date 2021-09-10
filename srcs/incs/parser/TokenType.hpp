@@ -16,7 +16,8 @@ class TokenType {
 		T_INT_IMMEDIATE,  // -1213
 		T_UINT_IMMEDIATE,  // 123123
 		T_DBL_IMMEDIATE,  // 213.12313
-		T_END  //;
+		T_END,  //;
+		T_INVALID
 	};
 	static std::string GetTokenTypeStr(enum e_id type);
  private:

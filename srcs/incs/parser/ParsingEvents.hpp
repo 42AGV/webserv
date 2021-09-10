@@ -3,9 +3,10 @@
 
 #include <dirent.h>
 #include <string>
-#include <parser/Token.hpp>
 #include <parser/KeywordType.hpp>
 // ????? Events should be Keywords and keywords should be states ?????
+
+class Token;
 
 class ParsingEvents {
  public:
@@ -32,5 +33,7 @@ class ParsingEvents {
 };
 
 typedef ParsingEvents::e_id t_Ev;
+
+#include <parser/Token.hpp>
 
 #endif  // SRCS_INCS_PARSER_PARSINGEVENTS_HPP_

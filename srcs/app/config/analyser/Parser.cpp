@@ -1,7 +1,7 @@
 #include <parser/Parser.hpp>
 
 Parser::Parser(const std::list<Token> &token,
-			   std::queue<ServerConfig> *server_settings) :
+			   iterable_queue<ServerConfig> *server_settings) :
 	server_settings_(server_settings),
 	state_(ParsingStateType::K_INIT),
 	tokens_(token),
@@ -16,7 +16,7 @@ void Parser::HandleLocationEvents(Location *location) {
 	while (state_ != ParsingStateType::K_EXIT) {
 		size_t line = itc_->GetLine();
 		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		t_keyword kw = KeywordType::GetKeywordTypeEnum(itc_->getRawData());
+		// t_keyword kw = KeywordType::GetKeywordTypeEnum(itc_->getRawData());
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)
@@ -33,7 +33,7 @@ void Parser::HandleLocationEvents(Location *location) {
 					throw Analyser::SyntaxError("Invalid keyword "
 												"in line", line);
 				} else {
-					state_ = static_cast<t_parsing_state>(kw + 1);
+					state_ = itc_->GetState();
 				}
 			}
 			break;
@@ -75,6 +75,7 @@ void Parser::HandleLocationEvents(Location *location) {
 
 void Parser::StateHandlerServerName(void) {
 	static size_t args = 0;
+	// static std::vector<std::string> server_name = {};
 	size_t line = itc_->GetLine();
 	t_Ev event = ParsingEvents::GetEvent(*itc_);
 
@@ -97,7 +98,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 	while (state_ != ParsingStateType::K_EXIT) {
 		size_t line = itc_->GetLine();
 		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		t_keyword kw = KeywordType::GetKeywordTypeEnum(itc_->getRawData());
+		// t_keyword kw = KeywordType::GetKeywordTypeEnum(itc_->getRawData());
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)
@@ -136,7 +137,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 					throw Analyser::SyntaxError("Invalid keyword "
 												"in line", line);
 				} else {
-					state_ = static_cast<t_parsing_state>(kw + 1);
+					state_ = itc_->GetState();
 				}
 			}
 			break;
@@ -172,8 +173,8 @@ void Parser::parse(void) {
 	t_keyword kw;
 	while (state_ != ParsingStateType::K_EXIT) {
 		size_t line = itc_->GetLine();
-		event = ParsingEvents::GetEvent(*itc_);
-		kw = KeywordType::GetKeywordTypeEnum(itc_->getRawData());
+		event = itc_->GetEvent();
+		kw = itc_->GetKeyword();
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)

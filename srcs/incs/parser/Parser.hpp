@@ -16,14 +16,14 @@
 class Parser: public Analyser {
  public:
 	Parser(const std::list<Token> &token,
-		   std::queue<ServerConfig> *server_settings_);
+		   iterable_queue<ServerConfig> *server_settings_);
 	void HandleLocationEvents(Location *location);
 	void HandleServerEvents(ServerConfig *config);
 	void parse(void);
  private:
 	void ResetArgNumber(void);
 	void StateHandlerServerName(void);
-	std::queue<ServerConfig> *server_settings_;
+	iterable_queue<ServerConfig> *server_settings_;
 	t_parsing_state state_;
 	const std::list<Token> &tokens_;
 	const std::list<Token>::const_iterator itb_;

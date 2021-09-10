@@ -2,7 +2,7 @@
 
 std::string KeywordType::GetKeywordTypeStr(enum e_id type) {
 	std::string retval("");
-	if (type > NONE && type < LIMIT_EXCEPT + 1)
+	if (type > NONE && type < LAST_INVALID_KEYWORD)
 		return keyword_to_str[type];
 	return retval;
 }

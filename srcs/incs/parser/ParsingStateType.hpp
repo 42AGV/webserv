@@ -24,7 +24,7 @@ class ParsingStateType {
 		K_LIMIT_EXCEPT,
 		K_EXP_SEMIC,
 		K_EXP_KW,
-		K_LAST_INVALID_KEYWORD
+		K_NONE
 	};
 };
 
