@@ -25,8 +25,7 @@ class ParsingEvents {
 		OPEN,
 		CLOSE,
 		SEMIC,
-		KEYWORD_SERV_CTX,
-		KEYWORD_LOC_CTX,
+		KEYWORD,
 		INVALID
 	};
 	static enum e_id GetEvent(const Token &token);
