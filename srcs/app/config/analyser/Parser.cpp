@@ -94,7 +94,7 @@ void Parser::StateHandlerServerName(void) {
 		// std::cout << server_settings_->back().server_name.back(); // this
 		// vector doesn't have room anywhere and doesnt work
 	// should be this
-	// server_settings_->back().server_name.push_back(itc_->getRawData());
+	server_settings_->back().server_name.push_back(itc_->getRawData());
 	args++;
 }
 
@@ -208,8 +208,8 @@ void Parser::parse(void) {
 				level_++;
 				ctx_.push(KeywordType::SERVER);
 				state_ = ParsingStateType::K_INIT;
-				HandleServerEvents(&config);  // nested state does not increment
 				server_settings_->push(config);  // itc_ (iterator current)
+				HandleServerEvents(&config);  // nested state does not increment
 				state_ = ParsingStateType::K_EXP_KW;
 				ctx_.pop();
 				level_--;
