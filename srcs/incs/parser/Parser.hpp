@@ -6,7 +6,6 @@
 #include <queue>
 #include <stack>
 #include <parser/TokenType.hpp>
-#include <parser/KeywordType.hpp>
 #include <parser/Lexer.hpp>
 #include <parser/ParsingStateType.hpp>
 #include <parser/ParsingEvents.hpp>
@@ -30,7 +29,7 @@ class Parser: public Analyser {
 	const std::list<Token>::const_iterator ite_;
 	std::list<Token>::const_iterator itc_;
 	uint8_t		level_;
-	std::stack<t_keyword>	ctx_;
+	std::stack<t_parsing_state>	ctx_;
 };
 
 #endif  // SRCS_INCS_PARSER_PARSER_HPP_

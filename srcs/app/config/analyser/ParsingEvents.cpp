@@ -44,18 +44,21 @@ static bool isMethod(const std::string &str) {
 	return str == "POST";
 }
 
-static bool isKwLoc(const std::string &str) {
-	t_keyword kw = KeywordType::GetKeywordTypeEnum(str);
-	if ((KeywordType::NONE < kw && kw < KeywordType::LAST_INVALID_KEYWORD)
-		&& kw != KeywordType::LISTEN && kw != KeywordType::SERVER_NAME)
+static bool isKwLoc(const std::string &str, t_token_type type) {
+	t_parsing_state kw = ParsingStateType::GetParsingStateTypeEnum(str, type);
+	if ((ParsingStateType::K_NONE < kw
+		 && kw < ParsingStateType::K_LAST_INVALID_STATE)
+		&& kw != ParsingStateType::K_LISTEN
+		&& kw != ParsingStateType::K_SERVER_NAME)
 		return true;
 	return false;
 }
 
-static bool isKwServ(const std::string &str) {
-	t_keyword kw = KeywordType::GetKeywordTypeEnum(str);
-	if ((KeywordType::NONE < kw && kw < KeywordType::LAST_INVALID_KEYWORD)
-		&& kw != KeywordType::LIMIT_EXCEPT)
+static bool isKwServ(const std::string &str, t_token_type type) {
+	t_parsing_state kw = ParsingStateType::GetParsingStateTypeEnum(str, type);
+	if ((ParsingStateType::K_NONE < kw
+		 && kw < ParsingStateType::K_LAST_INVALID_STATE)
+		&& kw != ParsingStateType::K_LIMIT_EXCEPT)
 		return true;
 	return false;
 }
@@ -92,7 +95,7 @@ t_Ev ParsingEvents::GetEvent(const Token &token) {
 		return FILE;
 	else if (isMethod(str))
 		return METHOD;
-	else if (isKwServ(str) || isKwLoc(str))  // otherwise, when we're in loc,
+	else if (isKwServ(str, type) || isKwLoc(str, type))  // otherwise, when we're in loc,
 		return KEYWORD;  // we still find first the serv ones,
 	return retval;
 }

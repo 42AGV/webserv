@@ -16,7 +16,7 @@ void Parser::HandleLocationEvents(Location *location) {
 	while (state_ != ParsingStateType::K_EXIT) {
 		// size_t line =  itc_->GetLine();
 		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		// t_keyword kw = KeywordType::GetKeywordTypeEnum(itc_->getRawData());
+		// t_keyword kw = ParsingStateType::GetParsingStateTypeEnum(itc_->getRawData());
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)
@@ -99,7 +99,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 	while (state_ != ParsingStateType::K_EXIT) {
 		// size_t line =  itc_->GetLine();
 		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		// t_keyword kw = KeywordType::GetKeywordTypeEnum(itc_->getRawData());
+		// t_keyword kw = ParsingStateType::GetParsingStateTypeEnum(itc_->getRawData());
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)
@@ -114,7 +114,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 				throw Analyser::SyntaxError("Invalid keyword in line", __LINE__);
 			} else {
 				level_++;
-				ctx_.push(KeywordType::LOCATION);
+				ctx_.push(ParsingStateType::K_LOCATION);
 				location.path = itc_->getRawData();
 				state_ = ParsingStateType::K_INIT;
 				itc_++;
@@ -181,11 +181,9 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 
 void Parser::parse(void) {
 	t_Ev event;
-	t_keyword kw;
 	while (state_ != ParsingStateType::K_EXIT) {
 		// size_t line =  itc_->GetLine();
 		event = itc_->GetEvent();
-		kw = itc_->GetKeyword();
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)
@@ -197,7 +195,7 @@ void Parser::parse(void) {
 			if (event == ParsingEvents::CLOSE) {
 				return;
 			} else {
-				if (kw != KeywordType::SERVER)  // then invalid keyword
+				if (itc_->GetState() != ParsingStateType::K_SERVER)  // then invalid keyword
 											// for this context
 					throw Analyser::SyntaxError("Syntax Error near unexpected "
 										"token in line", __LINE__);
@@ -213,7 +211,7 @@ void Parser::parse(void) {
 											"token in line", __LINE__);
 			} else {
 				level_++;
-				ctx_.push(KeywordType::SERVER);
+				ctx_.push(ParsingStateType::K_SERVER);
 				state_ = ParsingStateType::K_INIT;
 				server_settings_->push(config);  // itc_ (iterator current)
 				HandleServerEvents(&config);  // nested state does not increment

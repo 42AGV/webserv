@@ -13,7 +13,6 @@ class Token {
 	std::string data_;
 	const t_token_type type_;
 	const size_t line_;
-	const t_keyword kw_;
 	const t_Ev event_;
 	const t_parsing_state state_;
  public:
@@ -23,7 +22,6 @@ class Token {
 	const std::string &getRawData(void) const;
 	size_t GetLine(void) const;
 	t_Ev GetEvent(void) const;
-	t_keyword GetKeyword(void) const;
 	t_parsing_state GetState(void) const;
 };
 
