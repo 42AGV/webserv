@@ -91,10 +91,7 @@ void Parser::StateHandlerServerName(void) {
 	if (event != ParsingEvents::URL)
 		throw Analyser::SyntaxError("Invalid type of argument in line", __LINE__);
 	else
-		// std::cout << server_settings_->back().server_name.back(); // this
-		// vector doesn't have room anywhere and doesnt work
-	// should be this
-	server_settings_->back().server_name.push_back(itc_->getRawData());
+		server_settings_->back().server_name.push_back(itc_->getRawData());
 	args++;
 }
 
@@ -142,6 +139,15 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 												"in line", __LINE__);
 				} else {
 					state_ = itc_->GetState();
+#ifdef DBG
+					std::cerr << "Raw data: \""<< itc_->getRawData() << "\"\n";
+					std::cerr << "Token type: \""<< itc_->GetTokenTypeStr()
+							  << "\"\n";
+					std::cerr << "Event type: \""<<  itc_->GetEvent() << "\"\n";
+					std::cerr << "State type: \""<<  itc_->GetState() << "\"\n";
+					std::cerr << "Keyword type: \""<<  itc_->GetKeyword()
+							  << "\"\n";
+#endif
 				}
 			}
 			break;
@@ -162,9 +168,10 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 		case ParsingStateType::K_INDEX:					// fill this up
 		case ParsingStateType::K_UPLOAD_STORE:			// fill this up
 		case ParsingStateType::K_CGI_ASSIGN:			// fill this up
-		default:
+		default: {
 			throw Analyser::SyntaxError("Invalid keyword "
-											"in line", __LINE__);
+								"in line", itc_->GetLine());  // __LINE__);
+		}
 		}
 		itc_++;
 		if (itc_ == ite_)

@@ -3,6 +3,8 @@
 
 #include <string>
 #include <iostream>
+#include <parser/KeywordType.hpp>
+#include <parser/TokenType.hpp>
 
 class ParsingStateType {
  public:
@@ -26,6 +28,7 @@ class ParsingStateType {
 		K_EXP_KW,
 		K_NONE
 	};
+	static enum e_id TokenToState(t_keyword kw, t_token_type type);
 };
 
 typedef ParsingStateType::e_id t_parsing_state;
