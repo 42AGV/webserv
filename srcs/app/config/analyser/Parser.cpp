@@ -17,8 +17,30 @@ Parser::Parser(const std::list<Token> &token,
 	level_(0),
 	ctx_() {}
 
-void Parser::HandleLocationEvents(Location *location) {
-	(void) location;
+// t_parsing_state InitHandler(void) {
+// 	if (event != ParsingEvents::OPEN)
+// 		throw Analyser::SyntaxError("We shouldnt be here", LINE);
+// 	return Token::State::K_EXP_KW;
+// }
+
+// typedef t_parsing_state (*StHandler)(void);
+
+// struct s_trans {
+// 	t_Ev evt;
+// 	t_parsing_state state;
+// 	StHandler apply;
+// };
+
+// static s_trans g_transitions[] = {
+// 	{ .evt = ParsingEvents::OPEN,
+// 	  .state = Token::State::K_INIT,
+// 	  .apply = InitHandler},
+// 	{ .evt = ParsingEvents::INVALID,
+// 	  .state = Token::State::K_INIT,
+// 	  .apply = InitHandler},
+// };
+
+void Parser::HandleLocationEvents(void) {
 	while (state_ != Token::State::K_EXIT) {
 #ifndef DBG
 		size_t line =  itc_->GetLine();
@@ -56,9 +78,9 @@ void Parser::HandleLocationEvents(Location *location) {
 			if (event != ParsingEvents::ON_OFF)
 				throw Analyser::SyntaxError("Invalid Token "
 											"in line", LINE);
-			location->common.autoindex = false;
+			server_settings_->back().locations.back().common.autoindex = false;
 			if (itc_->getRawData() == "on")
-				location->common.autoindex = true;
+				server_settings_->back().locations.back().common.autoindex = true;
 			state_ = Token::State::K_EXP_SEMIC;
 			break;
 		}
@@ -80,7 +102,7 @@ void Parser::HandleLocationEvents(Location *location) {
 	}
 }
 
-void Parser::StateHandlerServerName(std::vector<std::string> *server_names) {
+void Parser::StateHandlerServerName(void) {
 	static size_t args = 0;
 #ifndef DBG
 		size_t line =  itc_->GetLine();
@@ -98,11 +120,11 @@ void Parser::StateHandlerServerName(std::vector<std::string> *server_names) {
 	if (event != ParsingEvents::URL)
 		throw Analyser::SyntaxError("Invalid type of argument in line", LINE);
 	else
-		server_names->push_back(itc_->getRawData());
+		server_settings_->back().server_name.push_back(itc_->getRawData());
 	args++;
 }
 
-void Parser::HandleServerEvents(ServerConfig *config) {
+void Parser::HandleServerEvents(void) {
 	while (state_ != Token::State::K_EXIT) {
 #ifndef DBG
 		size_t line =  itc_->GetLine();
@@ -126,8 +148,8 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 				location.path = itc_->getRawData();
 				state_ = Token::State::K_INIT;
 				itc_++;
-				HandleLocationEvents(&location);
-				config->locations.push_back(location);
+				server_settings_->back().locations.push_back(location);
+				HandleLocationEvents();
 				state_ = Token::State::K_EXP_KW;
 				ctx_.pop();
 				level_--;
@@ -135,7 +157,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 			break;
 		}
 		case Token::State::K_SERVER_NAME: {
-			StateHandlerServerName(&config->server_name);
+			StateHandlerServerName();
 			break;
 		}
 		case Token::State::K_EXP_KW : {
@@ -185,6 +207,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 	}
 }
 
+
 void Parser::parse(void) {
 	t_Ev event;
 	while (state_ != Token::State::K_EXIT) {
@@ -213,7 +236,6 @@ void Parser::parse(void) {
 			break;
 		}
 		case Token::State::K_SERVER: {
-			ServerConfig config;
 			if (event != ParsingEvents::OPEN) {
 				throw Analyser::SyntaxError("Syntax Error near unexpected "
 											"token in line", LINE);
@@ -221,8 +243,8 @@ void Parser::parse(void) {
 				level_++;
 				ctx_.push(Token::State::K_SERVER);
 				state_ = Token::State::K_INIT;
-				HandleServerEvents(&config);  // nested state does not increment
-				server_settings_->push(config);  // itc_ (iterator current)
+				server_settings_->push(ServerConfig());  // itc_ (iterator current)
+				HandleServerEvents();  // nested state does not increment
 				state_ = Token::State::K_EXP_KW;
 				ctx_.pop();
 				level_--;
