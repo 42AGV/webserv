@@ -14,14 +14,13 @@ Parser::Parser(const std::list<Token> &token,
 void Parser::HandleLocationEvents(Location *location) {
 	(void) location;
 	while (state_ != ParsingStateType::K_EXIT) {
-		// size_t line =  itc_->GetLine();
+		size_t line =  itc_->GetLine();
 		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		// t_keyword kw = ParsingStateType::GetParsingStateTypeEnum(itc_->getRawData());
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("Invalid Token "
-											"in line", __LINE__);
+											"in line", line);
 			state_ = ParsingStateType::K_EXP_KW;
 			break;
 		}
@@ -30,9 +29,8 @@ void Parser::HandleLocationEvents(Location *location) {
 				return;
 			} else {
 				if (event != ParsingEvents::KEYWORD) {
-					std::cout << itc_->getRawData() << ": event "<< itc_->GetEvent() << "\n";
 					throw Analyser::SyntaxError("Invalid keyword "
-												"in line", __LINE__);
+												"in line", line);
 				} else {
 					state_ = itc_->GetState();
 				}
@@ -42,14 +40,14 @@ void Parser::HandleLocationEvents(Location *location) {
 		case ParsingStateType::K_EXP_SEMIC: {
 			if (event != ParsingEvents::SEMIC)
 				throw Analyser::SyntaxError("Invalid Token "
-											"in line", __LINE__);
+											"in line", line);
 			state_ = ParsingStateType::K_EXP_KW;
 			break;
 		}
 		case ParsingStateType::K_AUTOINDEX: {
 			if (event != ParsingEvents::ON_OFF)
 				throw Analyser::SyntaxError("Invalid Token "
-											"in line", __LINE__);
+											"in line", line);
 			location->common.autoindex = false;
 			if (itc_->getRawData() == "on")
 				location->common.autoindex = true;
@@ -66,30 +64,29 @@ void Parser::HandleLocationEvents(Location *location) {
 		case ParsingStateType::K_LIMIT_EXCEPT:			 // fill this up
 		default:
 			throw Analyser::SyntaxError("Invalid keyword "
-										"in line", __LINE__);
+										"in line", line);
 		}
 		itc_++;
 		if (itc_ == ite_)
-			throw Analyser::SyntaxError("Unexpected end of file", __LINE__);
+			throw Analyser::SyntaxError("Unexpected end of file", line);
 	}
 }
 
 void Parser::StateHandlerServerName(std::vector<std::string> *server_names) {
 	static size_t args = 0;
-	// static std::vector<std::string> server_name = {};
-	// size_t line =  itc_->GetLine();
+	size_t line =  itc_->GetLine();
 	t_Ev event = ParsingEvents::GetEvent(*itc_);
 
 	if (args == 0 && event == ParsingEvents::SEMIC)
 		throw Analyser::SyntaxError("invalid number of arguments in "
-									"\"server_name\" directive:", __LINE__);
+									"\"server_name\" directive:", line);
 	if (event == ParsingEvents::SEMIC) {
 		state_ = ParsingStateType::K_EXP_KW;
 		args = 0;
 		return;
 	}
 	if (event != ParsingEvents::URL)
-		throw Analyser::SyntaxError("Invalid type of argument in line", __LINE__);
+		throw Analyser::SyntaxError("Invalid type of argument in line", line);
 	else
 		server_names->push_back(itc_->getRawData());
 	args++;
@@ -97,21 +94,20 @@ void Parser::StateHandlerServerName(std::vector<std::string> *server_names) {
 
 void Parser::HandleServerEvents(ServerConfig *config) {
 	while (state_ != ParsingStateType::K_EXIT) {
-		// size_t line =  itc_->GetLine();
+		size_t line =  itc_->GetLine();
 		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		// t_keyword kw = ParsingStateType::GetParsingStateTypeEnum(itc_->getRawData());
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("Invalid Token "
-											"in line", __LINE__);
+											"in line", line);
 			state_ = ParsingStateType::K_EXP_KW;
 			break;
 		}
 		case ParsingStateType::K_LOCATION: {
 			Location location((CommonConfig()));
 			if (event != ParsingEvents::URI) {
-				throw Analyser::SyntaxError("Invalid keyword in line", __LINE__);
+				throw Analyser::SyntaxError("Invalid keyword in line", line);
 			} else {
 				level_++;
 				ctx_.push(ParsingStateType::K_LOCATION);
@@ -136,7 +132,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 			} else {
 				if (event != ParsingEvents::KEYWORD) {
 					throw Analyser::SyntaxError("Invalid keyword "
-												"in line", __LINE__);
+												"in line", line);
 				} else {
 					state_ = itc_->GetState();
 #ifdef DBG
@@ -155,7 +151,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 		case ParsingStateType::K_EXP_SEMIC: {
 			if (event != ParsingEvents::SEMIC)
 				throw Analyser::SyntaxError("Invalid Token "
-											"in line", __LINE__);
+											"in line", line);
 			state_ = ParsingStateType::K_EXP_KW;
 			break;
 		}
@@ -170,24 +166,24 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 		case ParsingStateType::K_CGI_ASSIGN:			// fill this up
 		default: {
 			throw Analyser::SyntaxError("Invalid keyword "
-								"in line", itc_->GetLine());  // __LINE__);
+								"in line", itc_->GetLine());  // line);
 		}
 		}
 		itc_++;
 		if (itc_ == ite_)
-			throw Analyser::SyntaxError("Unexpected end of file", __LINE__);
+			throw Analyser::SyntaxError("Unexpected end of file", line);
 	}
 }
 
 void Parser::parse(void) {
 	t_Ev event;
 	while (state_ != ParsingStateType::K_EXIT) {
-		// size_t line =  itc_->GetLine();
+		size_t line =  itc_->GetLine();
 		event = itc_->GetEvent();
 		switch (state_) {
 		case ParsingStateType::K_INIT: {
 			if (event != ParsingEvents::OPEN)
-				throw Analyser::SyntaxError("We shouldnt be here", __LINE__);
+				throw Analyser::SyntaxError("We shouldnt be here", line);
 			state_ = ParsingStateType::K_EXP_KW;
 			break;
 		}
@@ -195,10 +191,10 @@ void Parser::parse(void) {
 			if (event == ParsingEvents::CLOSE) {
 				return;
 			} else {
-				if (itc_->GetState() != ParsingStateType::K_SERVER)  // then invalid keyword
-											// for this context
+				if (itc_->GetState() != ParsingStateType::K_SERVER)
+					// then invalid keyword for this context
 					throw Analyser::SyntaxError("Syntax Error near unexpected "
-										"token in line", __LINE__);
+										"token in line", line);
 				else
 					state_ = ParsingStateType::K_SERVER;
 			}
@@ -208,7 +204,7 @@ void Parser::parse(void) {
 			ServerConfig config;
 			if (event != ParsingEvents::OPEN) {
 				throw Analyser::SyntaxError("Syntax Error near unexpected "
-											"token in line", __LINE__);
+											"token in line", line);
 			} else {
 				level_++;
 				ctx_.push(ParsingStateType::K_SERVER);
@@ -223,10 +219,10 @@ void Parser::parse(void) {
 		}
 		default:
 			throw Analyser::SyntaxError("Syntax Error near unexpected "
-										"token in line", __LINE__);
+										"token in line", line);
 		}
 		itc_++;
 		if (itc_ == ite_)
-			throw Analyser::SyntaxError("Unexpected end of file", __LINE__);
+			throw Analyser::SyntaxError("Unexpected end of file", line);
 	}
 }

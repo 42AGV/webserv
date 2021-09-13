@@ -1,0 +1,72 @@
+make /home/alvaro/webserv/bld/utest_app
+make[1]: Entering directory '/home/alvaro/webserv'
+make[1]: '/home/alvaro/webserv/bld/utest_app' is up to date.
+make[1]: Leaving directory '/home/alvaro/webserv'
+/home/alvaro/webserv/bld/utest_app
+server 0:
+	listen_address : 2130706433
+	listen_port : 8080
+	root : html
+	client_max_body_size : 1000000
+	autoindex : 0
+	index : index.html
+	server_names :
+		server_name 0: 42agv.com
+		server_name 1: 42agv.com
+		server_name 2: 42agv.com
+		server_name 3: 42agv.com
+	locations :
+	path 0: /
+			root : html
+			client_max_body_size : 1000000
+			autoindex : 0
+			index : index.html
+	path 1: /
+			root : html
+			client_max_body_size : 1000000
+			autoindex : 1
+			index : index.html
+	path 2: /
+			root : html
+			client_max_body_size : 1000000
+			autoindex : 1
+			index : index.html
+	path 3: /
+			root : html
+			client_max_body_size : 1000000
+			autoindex : 0
+			index : index.html
+	path 4: /
+			root : html
+			client_max_body_size : 1000000
+			autoindex : 1
+			index : index.html
+server 1:
+	listen_address : 2130706433
+	listen_port : 8080
+	root : html
+	client_max_body_size : 1000000
+	autoindex : 0
+	index : index.html
+	server_names :
+		server_name 0: 42agv.com
+		server_name 1: 42agv.com
+	locations :
+	path 0: /
+			root : html
+			client_max_body_size : 1000000
+			autoindex : 1
+			index : index.html
+	path 1: /
+			root : html
+			client_max_body_size : 1000000
+			autoindex : 0
+			index : index.html
+	path 2: /
+			root : html
+			client_max_body_size : 1000000
+			autoindex : 0
+			index : index.html
+===============================================================================
+All tests passed (21 assertions in 8 test cases)
+

@@ -81,8 +81,8 @@ t_Ev ParsingEvents::GetEvent(const Token &token) {
 		return PORT;
 	else if (isIpPort(str))
 		return IP_PORT;
-//	else if (isDir(str))
-//		return DIR; URI is also dir, but dir is before, so it doesnt enter
+  // else if (isDir(str))
+  // return DIR; URI is also dir, but dir is before, so it doesnt enter
 	else if (isSize(str))
 		return SIZE;
 	else if (isUri(str) || isDir(str))
@@ -95,7 +95,8 @@ t_Ev ParsingEvents::GetEvent(const Token &token) {
 		return FILE;
 	else if (isMethod(str))
 		return METHOD;
-	else if (isKwServ(str, type) || isKwLoc(str, type))  // otherwise, when we're in loc,
+	else if (isKwServ(str, type) || isKwLoc(str, type))
+  // otherwise, when we're in loc,
 		return KEYWORD;  // we still find first the serv ones,
 	return retval;
 }

@@ -5,7 +5,7 @@
 
 struct	Location {
 	CommonConfig	common;
-	std::string		path; // should be a Uri
+	std::string		path;  // should be a Uri
 	/* More location settings */
 
 	explicit Location(const CommonConfig &common);

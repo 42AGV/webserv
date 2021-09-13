@@ -2,7 +2,8 @@ NAME = webserv
 export CXX = clang++
 CXXFLAGS = -Wall -Werror -Wextra -std=c++98 -g3
 LINT = cpplint
-LINTFLAGS = --recursive --exclude=srcs/incs/test/catch2.hpp
+LINTFLAGS = --recursive --exclude=srcs/incs/test/catch2.hpp \
+		--exclude=nocommit/ --exclude=*.nocommit
 RMF = rm -rf
 export MKDIR = mkdir -p
 export ERRIGNORE = 2>/dev/null

@@ -1,7 +1,7 @@
 #include <string>
+#include <sstream>
 #include <StringUtils.hpp>
 #include <catch2.hpp>
-#include <sstream>
 #include <parser/Lexer.hpp>
 #include <parser/Token.hpp>
 #include <parser/Preprocessor.hpp>
