@@ -3,7 +3,6 @@
 
 #include <dirent.h>
 #include <string>
-// ????? Events should be Keywords and keywords should be states ?????
 
 class Token;
 
