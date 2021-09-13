@@ -6,7 +6,6 @@
 #include <queue>
 #include <vector>
 #include <stack>
-#include <parser/TokenType.hpp>
 #include <parser/Lexer.hpp>
 #include <parser/ParsingEvents.hpp>
 #include <ServerConfig.hpp>

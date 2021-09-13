@@ -1,5 +1,24 @@
 #include <parser/Token.hpp>
 
+std::string Token::Type::GetTokenTypeStr(enum e_id type) {
+	std::string retval("unknown");
+	if (type > T_UNKNOWN && type < T_INVALID)
+		return str_map[type];
+	return retval;
+}
+
+const char *Token::Type::str_map[10] = {
+	"t scope open",
+	"t scope close",
+	"t symbol",
+	"t str immediate t0",
+	"t str immediate t1",
+	"t int immediate",
+	"t uint immediate",
+	"t dbl immediate",
+	"t end"
+};
+
 std::string Token::State::GetParsingStateTypeStr(enum e_id type) {
 	std::string retval("");
 	if (type > K_NONE && type < K_LAST_INVALID_STATE)
@@ -9,8 +28,8 @@ std::string Token::State::GetParsingStateTypeStr(enum e_id type) {
 
 t_parsing_state Token::State::GetParsingStateTypeEnum
 (const std::string &data, t_token_type ttype) {
-	if (ttype == TokenType::T_END || ttype == TokenType::T_SCOPE_OPEN
-		|| ttype == TokenType::T_SCOPE_CLOSE)
+	if (ttype == Token::Type::T_END || ttype == Token::Type::T_SCOPE_OPEN
+		|| ttype == Token::Type::T_SCOPE_CLOSE)
 		return K_EXP_KW;
 	for (uint8_t i = K_EXIT; i < K_LAST_INVALID_STATE; ++i) {
 		if (keyword_to_str[i + 1] == data)
@@ -57,7 +76,7 @@ size_t Token::GetLine(void) const {
 }
 
 std::string Token::GetTokenTypeStr(void) const {
-	return TokenType::GetTokenTypeStr(type_);
+	return Token::Type::GetTokenTypeStr(type_);
 }
 
 const std::string &Token::getRawData(void) const {

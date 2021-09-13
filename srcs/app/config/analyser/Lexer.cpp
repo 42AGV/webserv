@@ -11,8 +11,8 @@ static void addStringLit(std::list<Token> *tokens, std::string *filebuff,
 	t_token_type type;
 
 	cmp = (*filebuff)[0];
-	type = (cmp == '\'' ?	TokenType::T_STR_IMMEDIATE_T1:
-							TokenType::T_STR_IMMEDIATE_T0);
+	type = (cmp == '\'' ?	Token::Type::T_STR_IMMEDIATE_T1:
+							Token::Type::T_STR_IMMEDIATE_T0);
 	*filebuff = filebuff->substr(1);
 	*tokenend = filebuff->find(cmp, 0);
 	if (*tokenend == filebuff->npos) {
@@ -31,11 +31,11 @@ static void addPunct(std::list<Token> *tokens, char type,
 	t_token_type	ttype;
 
 	if (type == ';')
-		ttype = TokenType::T_END;
+		ttype = Token::Type::T_END;
 	else if (type == '{')
-		ttype = TokenType::T_SCOPE_OPEN;
+		ttype = Token::Type::T_SCOPE_OPEN;
 	else if (type == '}')
-		ttype = TokenType::T_SCOPE_CLOSE;
+		ttype = Token::Type::T_SCOPE_CLOSE;
 	else
 		throw Analyser::SyntaxError("Unexpected token near line", line);
 	tmp[0] = type;
@@ -70,7 +70,7 @@ std::list<Token> *Lexer::lexer(const std::string &fileBuff) {
 		if (tokenend == filebuff.npos)
 			tokenend = filebuff.size();
 		if ((token = filebuff.substr(0, tokenend)) != "")
-			tokens->push_back(Token(token, TokenType::T_SYMBOL, line));
+			tokens->push_back(Token(token, Token::Type::T_SYMBOL, line));
 	}
 	return tokens;
 }

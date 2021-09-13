@@ -67,11 +67,11 @@ t_Ev ParsingEvents::GetEvent(const Token &token) {
 	t_Ev retval = INVALID;
 	const std::string &str = token.getRawData();
 	t_token_type type = token.getType();
-	if (type == TokenType::T_SCOPE_CLOSE)
+	if (type == Token::Type::T_SCOPE_CLOSE)
 		return CLOSE;
-	else if (type == TokenType::T_END)
+	else if (type == Token::Type::T_END)
 		return SEMIC;
-	else if (type == TokenType::T_SCOPE_OPEN)
+	else if (type == Token::Type::T_SCOPE_OPEN)
 		return OPEN;
 	else if (str == "on" || str == "off")
 		return ON_OFF;
