@@ -15,19 +15,30 @@ class Parser: public Analyser {
  public:
 	Parser(const std::list<Token> &token,
 		   iterable_queue<ServerConfig> *server_settings_);
-	void HandleLocationEvents(void);
-	void HandleServerEvents(void);
 	void parse(void);
+
  private:
-	void StateHandlerServerName(void);
-	iterable_queue<ServerConfig> *server_settings_;
-	t_parsing_state state_;
+	static t_parsing_state HandleLocationEvents(void);
+	static t_parsing_state HandleServerEvents(void);
+	// ============= handlers ===================
+	static t_parsing_state ServerNameHandler(void);
+	static t_parsing_state InitHandler(void);
 	const std::list<Token> &tokens_;
-	const std::list<Token>::const_iterator itb_;
-	const std::list<Token>::const_iterator ite_;
-	std::list<Token>::const_iterator itc_;
-	uint8_t		level_;
-	std::stack<t_parsing_state>	ctx_;
+	static iterable_queue<ServerConfig> *server_settings_;
+	static const std::list<Token>::const_iterator itb_;
+	static const std::list<Token>::const_iterator ite_;
+	static std::list<Token>::const_iterator itc_;
+	struct s_trans {
+		t_Ev evt;
+		t_parsing_state state;
+		t_parsing_state (*apply)(void);
+	};
+	static const s_trans l_transitions[2];
+};
+
+class AServerState : public Parser {
+ public:
+	t_parsing_state ServerNameHandler(void);
 };
 
 #endif  // SRCS_INCS_PARSER_PARSER_HPP_

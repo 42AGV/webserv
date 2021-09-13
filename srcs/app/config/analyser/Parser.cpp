@@ -8,61 +8,55 @@
 
 Parser::Parser(const std::list<Token> &token,
 			   iterable_queue<ServerConfig> *server_settings) :
-	server_settings_(server_settings),
-	state_(Token::State::K_INIT),
-	tokens_(token),
-	itb_(tokens_.begin()),
-	ite_(tokens_.end()),
-	itc_(tokens_.begin()),
-	level_(0),
-	ctx_() {}
+	tokens_(token) {
+	server_settings_ = server_settings;
+	const_cast<std::list<Token>::const_iterator &>(itb_) = tokens_.begin();
+	const_cast<std::list<Token>::const_iterator &>(ite_) = tokens_.end();
+	itc_ = itb_;
+}
 
-// t_parsing_state InitHandler(void) {
-// 	if (event != ParsingEvents::OPEN)
-// 		throw Analyser::SyntaxError("We shouldnt be here", LINE);
-// 	return Token::State::K_EXP_KW;
-// }
+t_parsing_state Parser::InitHandler(void) {
+	return Token::State::K_EXP_KW;
+}
 
-// typedef t_parsing_state (*StHandler)(void);
+const struct Parser::s_trans Parser::l_transitions[2] = {
+	{ .evt = ParsingEvents::OPEN,
+	  .state = Token::State::K_INIT,
+	  .apply = InitHandler},
+	{ .evt = ParsingEvents::INVALID,
+	  .state = Token::State::K_INIT,
+	  .apply = InitHandler},
+};
 
-// struct s_trans {
-// 	t_Ev evt;
-// 	t_parsing_state state;
-// 	StHandler apply;
-// };
+iterable_queue<ServerConfig> *Parser::server_settings_;
+const std::list<Token>::const_iterator Parser::itb_;
+const std::list<Token>::const_iterator Parser::ite_;
+std::list<Token>::const_iterator Parser::itc_;
 
-// static s_trans g_transitions[] = {
-// 	{ .evt = ParsingEvents::OPEN,
-// 	  .state = Token::State::K_INIT,
-// 	  .apply = InitHandler},
-// 	{ .evt = ParsingEvents::INVALID,
-// 	  .state = Token::State::K_INIT,
-// 	  .apply = InitHandler},
-// };
-
-void Parser::HandleLocationEvents(void) {
-	while (state_ != Token::State::K_EXIT) {
+t_parsing_state Parser::HandleLocationEvents(void) {
+	t_parsing_state state = Token::State::K_INIT;
+	while (state != Token::State::K_EXIT) {
 #ifndef DBG
 		size_t line =  itc_->GetLine();
 #endif
 		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		switch (state_) {
+		switch (state) {
 		case Token::State::K_INIT: {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("Invalid Token "
 											"in line", LINE);
-			state_ = Token::State::K_EXP_KW;
+			state = InitHandler();
 			break;
 		}
 		case Token::State::K_EXP_KW : {
 			if (event == ParsingEvents::CLOSE) {
-				return;
+				return Token::State::K_EXP_KW;
 			} else {
 				if (event != ParsingEvents::KEYWORD) {
 					throw Analyser::SyntaxError("Invalid keyword "
 												"in line", LINE);
 				} else {
-					state_ = itc_->GetState();
+					state = itc_->GetState();
 				}
 			}
 			break;
@@ -71,7 +65,7 @@ void Parser::HandleLocationEvents(void) {
 			if (event != ParsingEvents::SEMIC)
 				throw Analyser::SyntaxError("Invalid Token "
 											"in line", LINE);
-			state_ = Token::State::K_EXP_KW;
+			state = Token::State::K_EXP_KW;
 			break;
 		}
 		case Token::State::K_AUTOINDEX: {
@@ -81,7 +75,7 @@ void Parser::HandleLocationEvents(void) {
 			server_settings_->back().locations.back().common.autoindex = false;
 			if (itc_->getRawData() == "on")
 				server_settings_->back().locations.back().common.autoindex = true;
-			state_ = Token::State::K_EXP_SEMIC;
+			state = Token::State::K_EXP_SEMIC;
 			break;
 		}
 		case Token::State::K_ROOT:					 // fill this up
@@ -100,9 +94,10 @@ void Parser::HandleLocationEvents(void) {
 		if (itc_ == ite_)
 			throw Analyser::SyntaxError("Unexpected end of file", LINE);
 	}
+	return Token::State::K_LAST_INVALID_STATE;
 }
 
-void Parser::StateHandlerServerName(void) {
+t_parsing_state Parser::ServerNameHandler(void) {
 	static size_t args = 0;
 #ifndef DBG
 		size_t line =  itc_->GetLine();
@@ -113,62 +108,61 @@ void Parser::StateHandlerServerName(void) {
 		throw Analyser::SyntaxError("invalid number of arguments in "
 									"\"server_name\" directive:", LINE);
 	if (event == ParsingEvents::SEMIC) {
-		state_ = Token::State::K_EXP_KW;
 		args = 0;
-		return;
+		return Token::State::K_EXP_KW;
 	}
 	if (event != ParsingEvents::URL)
 		throw Analyser::SyntaxError("Invalid type of argument in line", LINE);
 	else
 		server_settings_->back().server_name.push_back(itc_->getRawData());
 	args++;
+	return Token::State::K_SERVER_NAME;
 }
 
-void Parser::HandleServerEvents(void) {
-	while (state_ != Token::State::K_EXIT) {
+t_parsing_state Parser::HandleServerEvents(void) {
+	t_parsing_state state = Token::State::K_INIT;
+	while (state != Token::State::K_EXIT) {
 #ifndef DBG
 		size_t line =  itc_->GetLine();
 #endif
 		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		switch (state_) {
+		switch (state) {
 		case Token::State::K_INIT: {
 			if (event != ParsingEvents::OPEN)
-				throw Analyser::SyntaxError("Invalid Token "
-											"in line", LINE);
-			state_ = Token::State::K_EXP_KW;
+				throw Analyser::SyntaxError("Expecting { "
+											"but didnt find it", LINE);
+			state = InitHandler();
 			break;
 		}
 		case Token::State::K_LOCATION: {
-			Location location((CommonConfig()));
 			if (event != ParsingEvents::URI) {
 				throw Analyser::SyntaxError("Invalid keyword in line", LINE);
 			} else {
-				level_++;
-				ctx_.push(Token::State::K_LOCATION);
-				location.path = itc_->getRawData();
-				state_ = Token::State::K_INIT;
+				Location location((CommonConfig()));
+				// level_++;
+				// ctx_.push(Token::State::K_LOCATION);
+				// location.path = itc_->getRawData();
 				itc_++;
 				server_settings_->back().locations.push_back(location);
-				HandleLocationEvents();
-				state_ = Token::State::K_EXP_KW;
-				ctx_.pop();
-				level_--;
+				state = HandleLocationEvents();
+				// ctx_.pop();
+				// level_--;
 			}
 			break;
 		}
 		case Token::State::K_SERVER_NAME: {
-			StateHandlerServerName();
+			state = ServerNameHandler();
 			break;
 		}
 		case Token::State::K_EXP_KW : {
 			if (event == ParsingEvents::CLOSE) {
-				return;
+				return Token::State::K_EXP_KW;
 			} else {
 				if (event != ParsingEvents::KEYWORD) {
 					throw Analyser::SyntaxError("Invalid keyword "
 												"in line", LINE);
 				} else {
-					state_ = itc_->GetState();
+					state = itc_->GetState();
 #ifdef DBG
 					std::cerr << "Raw data: \""<< itc_->getRawData() << "\"\n";
 					std::cerr << "Token type: \""<< itc_->GetTokenTypeStr()
@@ -184,7 +178,7 @@ void Parser::HandleServerEvents(void) {
 			if (event != ParsingEvents::SEMIC)
 				throw Analyser::SyntaxError("Invalid Token "
 											"in line", LINE);
-			state_ = Token::State::K_EXP_KW;
+			state = Token::State::K_EXP_KW;
 			break;
 		}
 		case Token::State::K_LISTEN:				// fill this up
@@ -205,21 +199,23 @@ void Parser::HandleServerEvents(void) {
 		if (itc_ == ite_)
 			throw Analyser::SyntaxError("Unexpected end of file", LINE);
 	}
+	return Token::State::K_LAST_INVALID_STATE;
 }
 
 
 void Parser::parse(void) {
 	t_Ev event;
-	while (state_ != Token::State::K_EXIT) {
+	t_parsing_state state = Token::State::K_INIT;
+	while (state != Token::State::K_EXIT) {
 #ifndef DBG
 		size_t line =  itc_->GetLine();
 #endif
 		event = itc_->GetEvent();
-		switch (state_) {
+		switch (state) {
 		case Token::State::K_INIT: {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("We shouldnt be here", LINE);
-			state_ = Token::State::K_EXP_KW;
+			state = InitHandler();
 			break;
 		}
 		case Token::State::K_EXP_KW: {
@@ -231,24 +227,13 @@ void Parser::parse(void) {
 					throw Analyser::SyntaxError("Syntax Error near unexpected "
 										"token in line", LINE);
 				else
-					state_ = Token::State::K_SERVER;
+					state = Token::State::K_SERVER;
 			}
 			break;
 		}
 		case Token::State::K_SERVER: {
-			if (event != ParsingEvents::OPEN) {
-				throw Analyser::SyntaxError("Syntax Error near unexpected "
-											"token in line", LINE);
-			} else {
-				level_++;
-				ctx_.push(Token::State::K_SERVER);
-				state_ = Token::State::K_INIT;
-				server_settings_->push(ServerConfig());  // itc_ (iterator current)
-				HandleServerEvents();  // nested state does not increment
-				state_ = Token::State::K_EXP_KW;
-				ctx_.pop();
-				level_--;
-			}
+				server_settings_->push(ServerConfig());
+				state = HandleServerEvents();
 			break;
 		}
 		default:
