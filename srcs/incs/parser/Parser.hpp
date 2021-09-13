@@ -8,7 +8,6 @@
 #include <stack>
 #include <parser/TokenType.hpp>
 #include <parser/Lexer.hpp>
-#include <parser/ParsingStateType.hpp>
 #include <parser/ParsingEvents.hpp>
 #include <ServerConfig.hpp>
 #include <Config.hpp>
