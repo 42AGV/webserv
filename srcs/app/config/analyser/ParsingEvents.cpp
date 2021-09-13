@@ -46,7 +46,7 @@ static bool isMethod(const std::string &str) {
 
 static bool isKwLoc(const std::string &str, t_token_type type) {
 	t_parsing_state kw = ParsingStateType::GetParsingStateTypeEnum(str, type);
-	if ((ParsingStateType::K_NONE < kw
+	if ((ParsingStateType::K_INIT < kw
 		 && kw < ParsingStateType::K_LAST_INVALID_STATE)
 		&& kw != ParsingStateType::K_LISTEN
 		&& kw != ParsingStateType::K_SERVER_NAME)
@@ -56,7 +56,7 @@ static bool isKwLoc(const std::string &str, t_token_type type) {
 
 static bool isKwServ(const std::string &str, t_token_type type) {
 	t_parsing_state kw = ParsingStateType::GetParsingStateTypeEnum(str, type);
-	if ((ParsingStateType::K_NONE < kw
+	if ((ParsingStateType::K_INIT < kw
 		 && kw < ParsingStateType::K_LAST_INVALID_STATE)
 		&& kw != ParsingStateType::K_LIMIT_EXCEPT)
 		return true;
