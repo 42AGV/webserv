@@ -20,19 +20,24 @@ std::ostream &operator<<(std::ostream &o, Config &c) {
 	for(; it != c.GetServersSettings().end(); ++it) {
 		o << "listen_address : " << it->listen_address << "\n";
 		o << "listen_port : " << it->listen_port << "\n";
+		o << "root : " << it->common.root << "\n";
+		o << "client_max_body_size : " << it->common.client_max_body_size << "\n";
+		o << "autoindex : " << it->common.autoindex << "\n";
+		o << "index : " << it->common.index << "\n";
 		o << "server_names : " << "\n";
 		std::vector<std::string>::iterator itn = it->server_name.begin();
 		for(size_t i = 0; itn != it->server_name.end(); ++itn, ++i) {
-			o << "    server_name " << i << *itn << "\n";
+			o << "    server_name " << i << ": " << *itn << "\n";
 		}
-		o << it->common;
 		o << "locations : " << "\n";
 		std::vector<Location>::iterator itl = it->locations.begin();
 		for(size_t i = 0; itl != it->locations.end(); ++itl, ++i) {
-			o << "    path:" << i << itl->path << "\n";
-			o << itl->common;
+			o << "    path " << i << ": "<< itl->path << "\n";
+			o << "        root : " << itl->common.root << "\n";
+			o << "        client_max_body_size : " << itl->common.client_max_body_size << "\n";
+			o << "        autoindex : " << itl->common.autoindex << "\n";
+			o << "        index : " << itl->common.index << "\n";
 		}
-		o << "listen_address" << it->listen_address << "\n";
 	}
 	return o;
 }

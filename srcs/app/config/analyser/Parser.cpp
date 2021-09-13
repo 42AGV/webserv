@@ -74,7 +74,7 @@ void Parser::HandleLocationEvents(Location *location) {
 	}
 }
 
-void Parser::StateHandlerServerName(void) {
+void Parser::StateHandlerServerName(std::vector<std::string> *server_names) {
 	static size_t args = 0;
 	// static std::vector<std::string> server_name = {};
 	// size_t line =  itc_->GetLine();
@@ -91,7 +91,7 @@ void Parser::StateHandlerServerName(void) {
 	if (event != ParsingEvents::URL)
 		throw Analyser::SyntaxError("Invalid type of argument in line", __LINE__);
 	else
-		server_settings_->back().server_name.push_back(itc_->getRawData());
+		server_names->push_back(itc_->getRawData());
 	args++;
 }
 
@@ -127,7 +127,7 @@ void Parser::HandleServerEvents(ServerConfig *config) {
 			break;
 		}
 		case ParsingStateType::K_SERVER_NAME: {
-			StateHandlerServerName();
+			StateHandlerServerName(&config->server_name);
 			break;
 		}
 		case ParsingStateType::K_EXP_KW : {
@@ -213,8 +213,8 @@ void Parser::parse(void) {
 				level_++;
 				ctx_.push(ParsingStateType::K_SERVER);
 				state_ = ParsingStateType::K_INIT;
-				server_settings_->push(config);  // itc_ (iterator current)
 				HandleServerEvents(&config);  // nested state does not increment
+				server_settings_->push(config);  // itc_ (iterator current)
 				state_ = ParsingStateType::K_EXP_KW;
 				ctx_.pop();
 				level_--;

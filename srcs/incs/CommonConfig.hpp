@@ -13,6 +13,4 @@ struct CommonConfig {
 	CommonConfig();
 };
 
-std::ostream &operator<<(std::ostream &o, const CommonConfig &c);
-
 #endif  // SRCS_INCS_COMMONCONFIG_HPP_

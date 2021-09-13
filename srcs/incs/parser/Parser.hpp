@@ -4,6 +4,7 @@
 #include <string>
 #include <list>
 #include <queue>
+#include <vector>
 #include <stack>
 #include <parser/TokenType.hpp>
 #include <parser/Lexer.hpp>
@@ -21,7 +22,7 @@ class Parser: public Analyser {
 	void parse(void);
  private:
 	void ResetArgNumber(void);
-	void StateHandlerServerName(void);
+	void StateHandlerServerName(std::vector<std::string> *server_names);
 	iterable_queue<ServerConfig> *server_settings_;
 	t_parsing_state state_;
 	const std::list<Token> &tokens_;
