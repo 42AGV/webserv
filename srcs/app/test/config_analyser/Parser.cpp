@@ -86,6 +86,7 @@ TEST_CASE("Testing the parser", "[parser]") {
 		result << config;
 		REQUIRE_FALSE(memcmp(result.str().c_str(), expected.c_str(),
 							 expected.size()));
+		std::cout << config;
 	} catch(const std::exception &e) {
 		FAIL(e.what());
 	}
