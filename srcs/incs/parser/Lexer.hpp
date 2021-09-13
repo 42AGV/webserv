@@ -14,9 +14,6 @@
 # include <parser/Analyser.hpp>
 # include <parser/Token.hpp>
 
-typedef bool (*t_validator)(std::string *error,
-						  std::list<std::string>::iterator *ctx);
-
 class Lexer : public Analyser {
  public:
 	explicit Lexer(const std::string &filebuff);
