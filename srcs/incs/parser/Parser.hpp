@@ -19,7 +19,7 @@ class Parser: public Analyser {
 	void parse(void);
 
  private:
-	static const char errormess_[];
+	static std::string *errormess_;
 	static t_parsing_state HandleLocationEvents(void);
 	static t_parsing_state HandleServerEvents(void);
 	// ============= handlers ===================
@@ -39,6 +39,7 @@ class Parser: public Analyser {
 		t_parsing_state state;
 		t_Ev evt;
 		t_parsing_state (*apply)(void);
+		const char errormess[35];
 	};
 	static const s_trans l_transitions[9];
 };

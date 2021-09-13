@@ -31,7 +31,10 @@ t_parsing_state Parser::SyntaxFailer(void) {
 	std::cerr << "Event type: \""<<  itc_->GetEvent() << "\"\n";
 	std::cerr << "State type: \""<<  itc_->GetState() << "\"\n";
 #endif
-	throw SyntaxError(errormess_, itc_->GetLine());
+	std::string result = "Syntax error: " + *errormess_;
+	delete errormess_;
+	errormess_ = NULL;
+	throw SyntaxError(result, itc_->GetLine());
 }
 
 t_parsing_state Parser::ExpKwHandlerClose(void) {
@@ -52,38 +55,47 @@ t_parsing_state Parser::AutoindexHandler(void) {
 const struct Parser::s_trans Parser::l_transitions[9] = {
 	{ .state = Token::State::K_INIT,
 	  .evt = ParsingEvents::OPEN,
-	  .apply = InitHandler},
+	  .apply = InitHandler,
+	  .errormess = ""},
 	{ .state = Token::State::K_INIT,
 	  .evt = ParsingEvents::EV_NONE,
-	  .apply = SyntaxFailer},
+	  .apply = SyntaxFailer,
+	  .errormess = "expected { in line"},
 	{ .state = Token::State::K_EXP_KW,
 	  .evt = ParsingEvents::CLOSE,
-	  .apply = ExpKwHandlerClose},
+	  .apply = ExpKwHandlerClose,
+	  .errormess = ""},
 	{ .state = Token::State::K_EXP_KW,
 	  .evt = ParsingEvents::EV_NONE,
-	  .apply = ExpKwHandlerKw},
+	  .apply = ExpKwHandlerKw,
+	  .errormess = ""},
 	{ .state = Token::State::K_EXP_KW,
 	  .evt = ParsingEvents::EV_NONE,
-	  .apply = SyntaxFailer},
+	  .apply = SyntaxFailer,
+	  .errormess = "expected keyword in line "},
 	{ .state = Token::State::K_EXP_SEMIC,
 	  .evt = ParsingEvents::SEMIC,
-	  .apply = SemicHandler},
+	  .apply = SemicHandler,
+	  .errormess = ""},
 	{ .state = Token::State::K_EXP_SEMIC,
 	  .evt = ParsingEvents::EV_NONE,
-	  .apply = SyntaxFailer},
+	  .apply = SyntaxFailer,
+	  .errormess = "expected ; in line "},
 	{ .state = Token::State::K_AUTOINDEX,
 	  .evt = ParsingEvents::ON_OFF,
-	  .apply = AutoindexHandler},
+	  .apply = AutoindexHandler,
+	  .errormess = ""},
 	{ .state = Token::State::K_AUTOINDEX,
 	  .evt = ParsingEvents::EV_NONE,
-	  .apply = SyntaxFailer},
+	  .apply = SyntaxFailer,
+	  .errormess = "expected 'on' or 'off' in line "},
 };
 
 iterable_queue<ServerConfig> *Parser::server_settings_ = NULL;
 const std::list<Token>::const_iterator Parser::itb_;
 const std::list<Token>::const_iterator Parser::ite_;
 std::list<Token>::const_iterator Parser::itc_;
-const char Parser::errormess_[] = "Syntax error near line ";
+std::string *Parser::errormess_ = NULL;
 
 t_parsing_state Parser::HandleLocationEvents(void) {
 	t_parsing_state state;
@@ -98,7 +110,9 @@ t_parsing_state Parser::HandleLocationEvents(void) {
 				|| (Token::State::K_NONE == l_transitions[i].state)) {
 				if ((event == l_transitions[i].evt)
 					|| (ParsingEvents::EV_NONE == l_transitions[i].evt)) {
+					errormess_ = new std::string(l_transitions[i].errormess);
 					state = l_transitions[i].apply();
+					delete errormess_;
 					break;
 				}
 			}
@@ -108,7 +122,7 @@ t_parsing_state Parser::HandleLocationEvents(void) {
 		itc_--;
 		return Token::State::K_EXP_KW;
 	}
-	throw SyntaxError("Unclosed quotes in line", itc_->GetLine());
+	throw SyntaxError("Unclosed scope in line", (--itc_)->GetLine());
 }
 
 t_parsing_state Parser::ServerNameHandler(void) {
