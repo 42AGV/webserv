@@ -175,8 +175,9 @@ t_parsing_state Parser::HandleServerEvents(void) {
 			} else {
 				Location location((CommonConfig()));
 				ctx_.push(Token::State::K_LOCATION);
-				itc_++;
 				server_settings_->back().locations.push_back(location);
+				server_settings_->back().locations.back().path = itc_->getRawData();
+				itc_++;
 				state = HandleLocationEvents();
 				ctx_.pop();
 			}
