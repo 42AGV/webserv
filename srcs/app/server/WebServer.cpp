@@ -45,12 +45,12 @@ void	WebServer::Run() {
 }
 
 bool	WebServer::PopulateServers_() {
-	std::queue<ServerConfig>	servers_settings;
+	std::vector<ServerConfig>	servers_settings;
 
 	servers_settings = config_.GetServersSettings();
 	while (!servers_settings.empty()) {
 		Server	server(servers_settings.front());
-		servers_settings.pop();
+		servers_settings.pop_back();
 
 		if (!server.BindListeningSocket())
 			return false;

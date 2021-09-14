@@ -1,7 +1,6 @@
 #ifndef SRCS_INCS_GETCONFIGFIELD_HPP_
 #define SRCS_INCS_GETCONFIGFIELD_HPP_
 
-#include <cassert>
 #include <string>
 #include <vector>
 #include <stack>
@@ -10,7 +9,7 @@
 
 class GetField {
  public:
-	GetField(iterable_queue<ServerConfig> * const &server_settings,
+	GetField(std::vector<ServerConfig> * const &server_settings,
 			 const t_parsing_state &ctx);
 	uint16_t *GetListenPort(void) const;
 	uint32_t *GetListenAddress(void) const;
@@ -24,7 +23,7 @@ class GetField {
 	std::string *GetPath(void) const;
 
  private:
-	iterable_queue<ServerConfig> *server_settings_;
+	std::vector<ServerConfig> *server_settings_;
 	t_parsing_state ctx_;
 };
 

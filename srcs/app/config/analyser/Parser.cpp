@@ -7,7 +7,7 @@
 #endif
 
 Parser::Parser(const std::list<Token> &token,
-			   iterable_queue<ServerConfig> *server_settings) :
+			   std::vector<ServerConfig> *server_settings) :
 	tokens_(token),
 	server_settings_(server_settings),
 	itb_(tokens_.begin()),
@@ -16,7 +16,7 @@ Parser::Parser(const std::list<Token> &token,
 	ctx_.push(Token::State::K_INIT);
 }
 
-Parser::Data::Data(iterable_queue<ServerConfig> * const &server_settings,
+Parser::Data::Data(std::vector<ServerConfig> * const &server_settings,
 	 const std::list<Token>::const_iterator &itc_,
 	 const std::string &error_msg,
 	 const std::stack<t_parsing_state> &ctx) : current_(*itc_),
@@ -267,7 +267,7 @@ void Parser::parse(void) {
 			break;
 		}
 		case Token::State::K_SERVER: {
-			server_settings_->push(ServerConfig());
+			server_settings_->push_back(ServerConfig());
 			ctx_.push(Token::State::K_SERVER);
 			state = HandleServerEvents();
 			ctx_.pop();

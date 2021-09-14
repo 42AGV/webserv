@@ -15,7 +15,7 @@
 
 /*class IObject {
   public:
-  IObject(iterable_queue<ServerConfig> * const &server_settings,
+  IObject(std::vector<ServerConfig> * const &server_settings,
   const t_parsing_state ctx);
   virtual ~IObject(void) = 0;
   virtual IObject *getObject(const t_parsing_state keyword) = 0;
@@ -35,14 +35,14 @@ private:
 IObject *obj_;
 const t_parsing_state ctx_;
 const t_parsing_state kw_;
-iterable_queue<ServerConfig> *server_settings;
+std::vector<ServerConfig> *server_settings;
 };*/
 
 
 class Parser: public Analyser {
  public:
 	Parser(const std::list<Token> &token,
-		   iterable_queue<ServerConfig> *server_settings_);
+		   std::vector<ServerConfig> *server_settings_);
 	void parse(void);
 
  private:
@@ -51,10 +51,10 @@ class Parser: public Analyser {
 		const Token &current_;
 		const std::string error_msg_;
 		const t_parsing_state ctx_;
-		iterable_queue<ServerConfig> *server_settings_;
+		std::vector<ServerConfig> *server_settings_;
 		const GetField field_;
 	public:
-		Data(iterable_queue<ServerConfig> * const &server_settings,
+		Data(std::vector<ServerConfig> * const &server_settings,
 			 const std::list<Token>::const_iterator &itc_,
 			 const std::string &error_msg,
 			 const std::stack<t_parsing_state> &ctx);
@@ -74,7 +74,7 @@ class Parser: public Analyser {
 	};
 	std::stack<t_parsing_state> ctx_;
 	const std::list<Token> &tokens_;
-	iterable_queue<ServerConfig> *server_settings_;
+	std::vector<ServerConfig> *server_settings_;
 	const std::list<Token>::const_iterator itb_;
 	const std::list<Token>::const_iterator ite_;
 	std::list<Token>::const_iterator itc_;

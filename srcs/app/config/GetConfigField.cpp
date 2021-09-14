@@ -1,7 +1,7 @@
 #include <GetConfigField.hpp>
 
 
-GetField::GetField(iterable_queue<ServerConfig> * const &server_settings,
+GetField::GetField(std::vector<ServerConfig> * const &server_settings,
 				   const t_parsing_state &ctx) :
 	server_settings_(server_settings),
 	ctx_(ctx) {}

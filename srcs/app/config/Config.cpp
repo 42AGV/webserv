@@ -4,18 +4,18 @@ bool	Config::LoadFile(const std::string &pathname) {
 	// Read and parse the configuration file and save to servers_settings_
 	if (!pathname.empty()) {
 		ServerConfig	settings;
-		servers_settings_.push(settings);
+		servers_settings_.push_back(settings);
 		return true;
 	}
 	return false;
 }
 
-iterable_queue<ServerConfig>	&Config::GetServersSettings() {
+std::vector<ServerConfig>	&Config::GetServersSettings() {
 	return servers_settings_;
 }
 
 std::ostream &operator<<(std::ostream &o, Config &c) {
-	iterable_queue<ServerConfig>::iterator it =
+	std::vector<ServerConfig>::iterator it =
 		c.GetServersSettings().begin();
 	for(size_t j = 0; it != c.GetServersSettings().end(); ++it, ++j) {
 		o << "server " << j << ":\n";
