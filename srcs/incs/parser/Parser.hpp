@@ -11,7 +11,7 @@
 #include <parser/ParsingEvents.hpp>
 #include <ServerConfig.hpp>
 #include <Config.hpp>
-#include <AObject.hpp>
+#include <GetConfigField.hpp>
 
 /*class IObject {
   public:

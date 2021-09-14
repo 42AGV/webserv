@@ -55,9 +55,10 @@ t_parsing_state Parser::StHandler::ExpKwHandlerKw(const Data &data) {
 }
 
 t_parsing_state Parser::StHandler::AutoindexHandler(const Data &data) {
-	data.server_settings_->back().locations.back().common.autoindex = false;
+	GetField field(data.server_settings_, data.ctx_);
+	*field.GetAutoindex() = false;
 	if (data.current_.getRawData() == "on")
-		data.server_settings_->back().locations.back().common.autoindex = true;
+		*field.GetAutoindex() = true;
 	return Token::State::K_EXP_SEMIC;
 }
 
@@ -174,14 +175,11 @@ t_parsing_state Parser::HandleServerEvents(void) {
 				throw Analyser::SyntaxError("Invalid keyword in line", LINE);
 			} else {
 				Location location((CommonConfig()));
-				// level_++;
-				// ctx_.push(Token::State::K_LOCATION);
-				// location.path = itc_->getRawData();
+				ctx_.push(Token::State::K_LOCATION);
 				itc_++;
 				server_settings_->back().locations.push_back(location);
 				state = HandleLocationEvents();
-				// ctx_.pop();
-				// level_--;
+				ctx_.pop();
 			}
 			break;
 		}
@@ -270,7 +268,9 @@ void Parser::parse(void) {
 		}
 		case Token::State::K_SERVER: {
 			server_settings_->push(ServerConfig());
+			ctx_.push(Token::State::K_SERVER);
 			state = HandleServerEvents();
+			ctx_.pop();
 			break;
 		}
 		default:
