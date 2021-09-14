@@ -9,7 +9,7 @@
 Parser::Parser(const std::list<Token> &token,
 			   iterable_queue<ServerConfig> *server_settings) :
 	tokens_(token),
-	server_settings_ (server_settings),
+	server_settings_(server_settings),
 	itb_(tokens_.begin()),
 	ite_(tokens_.end()),
 	itc_(itb_) {
@@ -22,8 +22,7 @@ Parser::Data::Data(iterable_queue<ServerConfig> * const &server_settings,
 	 const std::stack<t_parsing_state> &ctx) : current_(*itc_),
 											  error_msg_(error_msg),
 											  ctx_(ctx.top()),
-											  server_settings_(server_settings)
-{
+											 server_settings_(server_settings) {
 }
 
 t_parsing_state Parser::StHandler::InitHandler(const Data &data) {
