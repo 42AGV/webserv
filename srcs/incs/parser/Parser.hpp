@@ -11,7 +11,6 @@
 #include <parser/ParsingEvents.hpp>
 #include <ServerConfig.hpp>
 #include <Config.hpp>
-#include <GetConfigField.hpp>
 
 /*class IObject {
   public:
@@ -41,8 +40,7 @@ std::vector<ServerConfig> *server_settings;
 
 class Parser: public Analyser {
  public:
-	Parser(const std::list<Token> &token,
-		   std::vector<ServerConfig> *server_settings_);
+	Parser(const std::list<Token> &token, Config *config);
 	void parse(void);
 
  private:
@@ -50,14 +48,22 @@ class Parser: public Analyser {
 	public:
 		const Token &current_;
 		const std::string error_msg_;
-		const t_parsing_state ctx_;
-		std::vector<ServerConfig> *server_settings_;
-		const GetField field_;
-	public:
-		Data(std::vector<ServerConfig> * const &server_settings,
+		void SetListenPort(uint16_t port) const;
+		void SetListenAddress(uint32_t address) const;
+		void AddServerName(const std::string &name) const;
+		void SetRoot(const std::string &root) const;
+		void AddIndex(const std::string &index) const;
+		void AddAutoindex(bool autoindex) const;
+		void SetClientMaxSz(uint32_t size) const;
+		void SetPath(const std::string &path) const;
+		Data(Config *config,
 			 const std::list<Token>::const_iterator &itc_,
 			 const std::string &error_msg,
 			 const std::stack<t_parsing_state> &ctx);
+	private:
+		const t_parsing_state ctx_;
+		std::vector<ServerConfig> *server_settings_;
+		Config *config_;
 	};
 	t_parsing_state HandleLocationEvents(void);
 	t_parsing_state HandleServerEvents(void);
@@ -74,6 +80,7 @@ class Parser: public Analyser {
 	};
 	std::stack<t_parsing_state> ctx_;
 	const std::list<Token> &tokens_;
+	Config *config_;
 	std::vector<ServerConfig> *server_settings_;
 	const std::list<Token>::const_iterator itb_;
 	const std::list<Token>::const_iterator ite_;

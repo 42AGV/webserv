@@ -81,7 +81,7 @@ TEST_CASE("Testing the parser", "[parser]") {
 		Lexer lexed(file.GetFileBuffer());
 		std::list<Token> *tokens = lexed.GetTokens();
 		Config config;
-		Parser parser(*tokens, &config.GetServersSettings());
+		Parser parser(*tokens, &config);
 		parser.parse();
 		result << config;
 		std::cout << config;

@@ -6,25 +6,58 @@
 # define LINE line
 #endif
 
-Parser::Parser(const std::list<Token> &token,
-			   std::vector<ServerConfig> *server_settings) :
+Parser::Parser(const std::list<Token> &token, Config *config) :
 	tokens_(token),
-	server_settings_(server_settings),
+	config_(config),
+	server_settings_(&config->GetServersSettings()),
 	itb_(tokens_.begin()),
 	ite_(tokens_.end()),
 	itc_(itb_) {
 	ctx_.push(Token::State::K_INIT);
 }
 
-Parser::Data::Data(std::vector<ServerConfig> * const &server_settings,
+Parser::Data::Data(Config *config,
 	 const std::list<Token>::const_iterator &itc_,
 	 const std::string &error_msg,
-	 const std::stack<t_parsing_state> &ctx) : current_(*itc_),
+	const std::stack<t_parsing_state> &ctx) : current_(*itc_),
 											  error_msg_(error_msg),
 											  ctx_(ctx.top()),
-											  server_settings_(server_settings),
-											  field_(server_settings, ctx_) {
+								server_settings_(&config->GetServersSettings()),
+											  config_(config) {
 }
+
+void Parser::Data::SetListenPort(uint16_t port) const {
+	config_->SetListenPort(port, ctx_);
+}
+
+void Parser::Data::SetListenAddress(uint32_t address) const {
+	config_->SetListenAddress(address, ctx_);
+}
+
+void Parser::Data::AddServerName(const std::string &name) const {
+	config_->AddServerName(name, ctx_);
+}
+
+void Parser::Data::SetRoot(const std::string &root) const {
+	config_->SetRoot(root, ctx_);
+}
+
+void Parser::Data::AddIndex(const std::string &index) const {
+	config_->AddIndex(index, ctx_);
+}
+
+void Parser::Data::AddAutoindex(bool autoindex) const {
+	config_->AddAutoindex(autoindex, ctx_);
+}
+
+void Parser::Data::SetClientMaxSz(uint32_t size) const {
+	config_->SetClientMaxSz(size, ctx_);
+}
+
+void Parser::Data::SetPath(const std::string &path) const {
+	config_->SetPath(path, ctx_);
+}
+
 
 t_parsing_state Parser::StHandler::InitHandler(const Data &data) {
 	(void) data;
@@ -56,9 +89,9 @@ t_parsing_state Parser::StHandler::ExpKwHandlerKw(const Data &data) {
 }
 
 t_parsing_state Parser::StHandler::AutoindexHandler(const Data &data) {
-	*data.field_.GetAutoindex() = false;
+	data.AddAutoindex(false);
 	if (data.current_.getRawData() == "on")
-		*data.field_.GetAutoindex() = true;
+		data.AddAutoindex(true);
 	return Token::State::K_EXP_SEMIC;
 }
 
@@ -114,7 +147,7 @@ t_parsing_state Parser::HandleLocationEvents(void) {
 				|| (Token::State::K_NONE == l_transitions[i].state)) {
 				if ((event == l_transitions[i].evt)
 					|| (ParsingEvents::EV_NONE == l_transitions[i].evt)) {
-					Data data(server_settings_, itc_,
+					Data data(config_, itc_,
 							  std::string(l_transitions[i].errormess), ctx_);
 					// errormess_ = new std::string(l_transitions[i].errormess);
 					state = l_transitions[i].apply(data);
@@ -148,7 +181,7 @@ t_parsing_state Parser::StHandler::ServerNameHandler(const Data &data) {
 	if (event != ParsingEvents::URL)
 		throw Analyser::SyntaxError("Invalid type of argument in line", LINE);
 	else
-		data.field_.GetServerName()->push_back(data.current_.getRawData());
+		data.AddServerName(data.current_.getRawData());
 	args++;
 	return Token::State::K_SERVER_NAME;
 }
@@ -165,7 +198,7 @@ t_parsing_state Parser::HandleServerEvents(void) {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("Expecting { "
 											"but didnt find it", LINE);
-			Data data(server_settings_, itc_, "", ctx_);
+			Data data(config_, itc_, "", ctx_);
 			state = StHandler::InitHandler(data);
 			break;
 		}
@@ -184,7 +217,7 @@ t_parsing_state Parser::HandleServerEvents(void) {
 			break;
 		}
 		case Token::State::K_SERVER_NAME: {
-			Data data(server_settings_, itc_, "", ctx_);
+			Data data(config_, itc_, "", ctx_);
 			state = StHandler::ServerNameHandler(data);
 			break;
 		}
@@ -249,7 +282,7 @@ void Parser::parse(void) {
 		case Token::State::K_INIT: {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("We shouldnt be here", LINE);
-			Data data(server_settings_, itc_, "", ctx_);
+			Data data(config_, itc_, "", ctx_);
 			state = StHandler::InitHandler(data);
 			break;
 		}
