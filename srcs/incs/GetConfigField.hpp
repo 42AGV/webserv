@@ -12,16 +12,16 @@ class GetField {
  public:
 	GetField(iterable_queue<ServerConfig> * const &server_settings,
 			 const t_parsing_state &ctx);
-	uint16_t *GetListenPort(void);
-	uint32_t *GetListenAddress(void);
-	std::vector<std::string>	*GetServerName(void);
+	uint16_t *GetListenPort(void) const;
+	uint32_t *GetListenAddress(void) const;
+	std::vector<std::string>	*GetServerName(void) const;
 // commonconfig
-	std::string *GetRoot(void);
-	std::string *GetIndex(void);
-	bool *GetAutoindex(void);
-	uint32_t *GetClientMaxSz(void);
+	std::string *GetRoot(void) const;
+	std::string *GetIndex(void) const;
+	bool *GetAutoindex(void) const;
+	uint32_t *GetClientMaxSz(void) const;
 // location
-	std::string *GetPath(void);
+	std::string *GetPath(void) const;
 
  private:
 	iterable_queue<ServerConfig> *server_settings_;

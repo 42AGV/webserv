@@ -52,6 +52,7 @@ class Parser: public Analyser {
 		const std::string error_msg_;
 		const t_parsing_state ctx_;
 		iterable_queue<ServerConfig> *server_settings_;
+		const GetField field_;
 	public:
 		Data(iterable_queue<ServerConfig> * const &server_settings,
 			 const std::list<Token>::const_iterator &itc_,

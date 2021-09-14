@@ -22,7 +22,8 @@ Parser::Data::Data(iterable_queue<ServerConfig> * const &server_settings,
 	 const std::stack<t_parsing_state> &ctx) : current_(*itc_),
 											  error_msg_(error_msg),
 											  ctx_(ctx.top()),
-											 server_settings_(server_settings) {
+											  server_settings_(server_settings),
+											  field_(server_settings, ctx_) {
 }
 
 t_parsing_state Parser::StHandler::InitHandler(const Data &data) {
@@ -55,10 +56,9 @@ t_parsing_state Parser::StHandler::ExpKwHandlerKw(const Data &data) {
 }
 
 t_parsing_state Parser::StHandler::AutoindexHandler(const Data &data) {
-	GetField field(data.server_settings_, data.ctx_);
-	*field.GetAutoindex() = false;
+	*data.field_.GetAutoindex() = false;
 	if (data.current_.getRawData() == "on")
-		*field.GetAutoindex() = true;
+		*data.field_.GetAutoindex() = true;
 	return Token::State::K_EXP_SEMIC;
 }
 
@@ -148,8 +148,7 @@ t_parsing_state Parser::StHandler::ServerNameHandler(const Data &data) {
 	if (event != ParsingEvents::URL)
 		throw Analyser::SyntaxError("Invalid type of argument in line", LINE);
 	else
-		data.server_settings_->back().server_name.push_back
-			(data.current_.getRawData());
+		data.field_.GetServerName()->push_back(data.current_.getRawData());
 	args++;
 	return Token::State::K_SERVER_NAME;
 }
