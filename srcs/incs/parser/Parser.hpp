@@ -11,6 +11,33 @@
 #include <parser/ParsingEvents.hpp>
 #include <ServerConfig.hpp>
 #include <Config.hpp>
+#include <AObject.hpp>
+
+/*class IObject {
+  public:
+  IObject(iterable_queue<ServerConfig> * const &server_settings,
+  const t_parsing_state ctx);
+  virtual ~IObject(void) = 0;
+  virtual IObject *getObject(const t_parsing_state keyword) = 0;
+// server
+virtual IObject &operator=(uint32_t listen_address) = 0;
+virtual IObject &operator=(uint16_t listen_port) = 0;
+virtual IObject &operator=(std::string server_name) = 0;
+// location
+//  virtual IObject &operator=(std::string limit_except) = 0;
+//  virtual IObject &operator=(std::string path) = 0;
+// common
+virtual IObject &operator=(bool autoindex) = 0;
+//  virtual IObject &operator=(uint32_t client_max_body_size) = 0;
+//  virtual IObject &operator=(std::string root) = 0;
+//  virtual IObject &operator=(std::string index) = 0;
+private:
+IObject *obj_;
+const t_parsing_state ctx_;
+const t_parsing_state kw_;
+iterable_queue<ServerConfig> *server_settings;
+};*/
+
 
 class Parser: public Analyser {
  public:
@@ -19,26 +46,41 @@ class Parser: public Analyser {
 	void parse(void);
 
  private:
-	static std::string *errormess_;
-	static t_parsing_state HandleLocationEvents(void);
-	static t_parsing_state HandleServerEvents(void);
+	class Data {
+	public:
+		const Token &current_;
+		const std::string error_msg_;
+		const t_parsing_state ctx_;
+		iterable_queue<ServerConfig> *server_settings_;
+	public:
+		Data(iterable_queue<ServerConfig> * const &server_settings,
+			 const std::list<Token>::const_iterator &itc_,
+			 const std::string &error_msg,
+			 const std::stack<t_parsing_state> &ctx);
+	};
+	t_parsing_state HandleLocationEvents(void);
+	t_parsing_state HandleServerEvents(void);
 	// ============= handlers ===================
-	static t_parsing_state SyntaxFailer(void);
-	static t_parsing_state ServerNameHandler(void);
-	static t_parsing_state InitHandler(void);
-	static t_parsing_state SemicHandler(void);
-	static t_parsing_state ExpKwHandlerClose(void);
-	static t_parsing_state ExpKwHandlerKw(void);
-	static t_parsing_state AutoindexHandler(void);
+	class StHandler {
+	public:
+		static t_parsing_state SyntaxFailer(const Data &data);
+		static t_parsing_state ServerNameHandler(const Data &data);
+		static t_parsing_state InitHandler(const Data &data);
+		static t_parsing_state SemicHandler(const Data &data);
+		static t_parsing_state ExpKwHandlerClose(const Data &data);
+		static t_parsing_state ExpKwHandlerKw(const Data &data);
+		static t_parsing_state AutoindexHandler(const Data &data);
+	};
+	std::stack<t_parsing_state> ctx_;
 	const std::list<Token> &tokens_;
-	static iterable_queue<ServerConfig> *server_settings_;
-	static const std::list<Token>::const_iterator itb_;
-	static const std::list<Token>::const_iterator ite_;
-	static std::list<Token>::const_iterator itc_;
+	iterable_queue<ServerConfig> *server_settings_;
+	const std::list<Token>::const_iterator itb_;
+	const std::list<Token>::const_iterator ite_;
+	std::list<Token>::const_iterator itc_;
 	struct s_trans {
 		t_parsing_state state;
 		t_Ev evt;
-		t_parsing_state (*apply)(void);
+		t_parsing_state (*apply)(const Data &data);
 		const char errormess[35];
 	};
 	static const s_trans l_transitions[9];
