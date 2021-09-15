@@ -15,13 +15,15 @@ Parser::Parser(const std::list<Token> &token, Config *config) :
 	ctx_.push(Token::State::K_INIT);
 }
 
-Parser::Data::Data(Config *config,
+Parser::Data::Data(Parser * const parser, Config *config,
 	 const std::list<Token>::const_iterator &itc_,
 	 const std::string &error_msg,
-	std::stack<t_parsing_state> *ctx) : current_(*itc_),
+				   std::stack<t_parsing_state> *ctx) :  current_(*itc_),
 											  error_msg_(error_msg),
+											  parser_(parser),
 											  ctx_(ctx),
 											  config_(config) {
+	(void)parser_;
 }
 
 void Parser::Data::SetListenPort(uint16_t port) const {
@@ -30,6 +32,12 @@ void Parser::Data::SetListenPort(uint16_t port) const {
 
 void Parser::Data::SetListenAddress(uint32_t address) const {
 	config_->SetListenAddress(address, ctx_->top());
+}
+
+void Parser::Data::AddLocation(const std::string &path) const {
+	(void)path;
+	CommonConfig conf = config_->GetLastCommonCfg();
+	config_->AddLocation(conf, ctx_->top());
 }
 
 void Parser::Data::AddServerName(const std::string &name) const {
@@ -91,7 +99,29 @@ t_parsing_state Parser::StHandler::AutoindexHandler(const Data &data) {
 	return Token::State::K_EXP_SEMIC;
 }
 
-const struct Parser::s_trans Parser::l_transitions[9] = {
+t_parsing_state Parser::StHandler::ServerNameHandler(const Data &data) {
+	static size_t args = 0;
+#ifndef DBG
+	size_t line =  data.current_.GetLine();
+#endif
+	t_Ev event = ParsingEvents::GetEvent(data.current_);
+
+	if (args == 0 && event == ParsingEvents::SEMIC)
+		throw Analyser::SyntaxError("invalid number of arguments in "
+									"\"server_name\" directive:", LINE);
+	if (event == ParsingEvents::SEMIC) {
+		args = 0;
+		return Token::State::K_EXP_KW;
+	}
+	if (event != ParsingEvents::URL)
+		throw Analyser::SyntaxError("Invalid type of argument in line", LINE);
+	else
+		data.AddServerName(data.current_.getRawData());
+	args++;
+	return Token::State::K_SERVER_NAME;
+}
+
+const struct Parser::s_trans Parser::l_transitions[10] = {
 	{ .state = Token::State::K_INIT,
 	  .evt = ParsingEvents::OPEN,
 	  .apply = StHandler::InitHandler,
@@ -128,14 +158,26 @@ const struct Parser::s_trans Parser::l_transitions[9] = {
 	  .evt = ParsingEvents::EV_NONE,
 	  .apply = StHandler::SyntaxFailer,
 	  .errormess = "expected 'on' or 'off' in line "},
+	{ .state = Token::State::K_SERVER_NAME,
+	  .evt = ParsingEvents::EV_NONE,
+	  .apply = StHandler::ServerNameHandler,
+	  .errormess = ""},
 };
 
-t_parsing_state Parser::HandleLocationEvents(void) {
+t_parsing_state Parser::StHandler::LocationHandler(const Data &data) {
+	data.AddLocation("");
+	data.ctx_->push(Token::State::K_LOCATION);
+	data.SetPath(data.current_.getRawData());
+	data.parser_->itc_++;
+	return HandleLocationEvents(data.parser_);
+}
+
+t_parsing_state Parser::HandleLocationEvents(Parser *parser) {
 	t_parsing_state state;
 	for (state = Token::State::K_INIT;
 		 state != Token::State::K_EXIT
-		 && itc_ != ite_ ; itc_++) {
-		t_Ev event = ParsingEvents::GetEvent(*itc_);
+			 && parser->itc_ != parser->ite_ ; parser->itc_++) {
+		t_Ev event = ParsingEvents::GetEvent(*parser->itc_);
 		for (size_t i = 0;
 			 i < sizeof(l_transitions) / sizeof(l_transitions[0]);
 			 ++i) {
@@ -143,39 +185,19 @@ t_parsing_state Parser::HandleLocationEvents(void) {
 				|| (Token::State::K_NONE == l_transitions[i].state)) {
 				if ((event == l_transitions[i].evt)
 					|| (ParsingEvents::EV_NONE == l_transitions[i].evt)) {
-					Data data(config_, itc_,
-							  l_transitions[i].errormess, &ctx_);
+					Data data(parser, parser->config_, parser->itc_,
+							  l_transitions[i].errormess, &parser->ctx_);
 					state = l_transitions[i].apply(data);
-					if (state == Token::State::K_EXIT)
+					if (state == Token::State::K_EXIT) {
+						parser->ctx_.pop();
 						return Token::State::K_EXP_KW;
+					}
 					break;
 				}
 			}
 		}
 	}
-	throw SyntaxError("Unclosed scope in line", (--itc_)->GetLine());
-}
-
-t_parsing_state Parser::StHandler::ServerNameHandler(const Data &data) {
-	static size_t args = 0;
-#ifndef DBG
-		size_t line =  data.current_.GetLine();
-#endif
-		t_Ev event = ParsingEvents::GetEvent(data.current_);
-
-	if (args == 0 && event == ParsingEvents::SEMIC)
-		throw Analyser::SyntaxError("invalid number of arguments in "
-									"\"server_name\" directive:", LINE);
-	if (event == ParsingEvents::SEMIC) {
-		args = 0;
-		return Token::State::K_EXP_KW;
-	}
-	if (event != ParsingEvents::URL)
-		throw Analyser::SyntaxError("Invalid type of argument in line", LINE);
-	else
-		data.AddServerName(data.current_.getRawData());
-	args++;
-	return Token::State::K_SERVER_NAME;
+	throw SyntaxError("Unclosed scope in line", (--parser->itc_)->GetLine());
 }
 
 t_parsing_state Parser::HandleServerEvents(void) {
@@ -190,7 +212,7 @@ t_parsing_state Parser::HandleServerEvents(void) {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("Expecting { "
 											"but didnt find it", LINE);
-			Data data(config_, itc_, "", &ctx_);
+			Data data(this, config_, itc_, "", &ctx_);
 			state = StHandler::InitHandler(data);
 			break;
 		}
@@ -202,13 +224,12 @@ t_parsing_state Parser::HandleServerEvents(void) {
 				ctx_.push(Token::State::K_LOCATION);
 				config_->SetPath(itc_->getRawData(), ctx_.top());
 				itc_++;
-				state = HandleLocationEvents();
-				ctx_.pop();
+				state = HandleLocationEvents(this);
 			}
 			break;
 		}
 		case Token::State::K_SERVER_NAME: {
-			Data data(config_, itc_, "", &ctx_);
+			Data data(this, config_, itc_, "", &ctx_);
 			state = StHandler::ServerNameHandler(data);
 			break;
 		}
@@ -273,7 +294,7 @@ void Parser::parse(void) {
 		case Token::State::K_INIT: {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("We shouldnt be here", LINE);
-			Data data(config_, itc_, "", &ctx_);
+			Data data(this, config_, itc_, "", &ctx_);
 			state = StHandler::InitHandler(data);
 			break;
 		}

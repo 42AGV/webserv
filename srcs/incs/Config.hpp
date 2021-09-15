@@ -14,6 +14,7 @@ class Config {
 	public:
 		bool	LoadFile(const std::string &pathname);
 		std::vector<ServerConfig>	&GetServersSettings();
+	CommonConfig GetLastCommonCfg(void);
 	void SetListenPort(uint16_t port, t_parsing_state ctx);
 	void SetListenAddress(uint32_t address, t_parsing_state ctx);
 	void AddServerName(const std::string &name, t_parsing_state ctx);

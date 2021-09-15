@@ -98,6 +98,16 @@ void Config::SetPath(const std::string &path, t_parsing_state ctx_) {
 	servers_settings_.back().locations.back().path = path;
 }
 
+CommonConfig Config::GetLastCommonCfg(void) {
+	CommonConfig config;
+	config.root = servers_settings_.back().common.root;
+	config.autoindex = servers_settings_.back().common.autoindex;
+	config.client_max_body_size
+		= servers_settings_.back().common.client_max_body_size;
+	config.index = servers_settings_.back().common.index;
+	return config;
+}
+
 std::ostream &operator<<(std::ostream &o, Config &c) {
 	std::vector<ServerConfig>::iterator it =
 		c.GetServersSettings().begin();

@@ -23,6 +23,8 @@ class Parser: public Analyser {
 	public:
 		const Token &current_;
 		const std::string error_msg_;
+		Parser * const parser_;
+		std::stack<t_parsing_state> *ctx_;
 		void SetListenPort(uint16_t port) const;
 		void SetListenAddress(uint32_t address) const;
 		void AddServerName(const std::string &name) const;
@@ -31,15 +33,16 @@ class Parser: public Analyser {
 		void AddAutoindex(const std::string &autoindex) const;
 		void SetClientMaxSz(uint32_t size) const;
 		void SetPath(const std::string &path) const;
-		Data(Config *config,
+		void AddLocation(const std::string &name) const;
+		// CommonConfig GetLastCommonCfg(void);
+		Data(Parser * const parser, Config *config,
 			 const std::list<Token>::const_iterator &itc_,
 			 const std::string &error_msg,
 			 std::stack<t_parsing_state> *ctx);
 	private:
-		std::stack<t_parsing_state> *ctx_;
 		Config *config_;
 	};
-	t_parsing_state HandleLocationEvents(void);
+	static t_parsing_state HandleLocationEvents(Parser *parser);
 	t_parsing_state HandleServerEvents(void);
 	// ============= handlers ===================
 	class StHandler {
@@ -51,6 +54,7 @@ class Parser: public Analyser {
 		static t_parsing_state ExpKwHandlerClose(const Data &data);
 		static t_parsing_state ExpKwHandlerKw(const Data &data);
 		static t_parsing_state AutoindexHandler(const Data &data);
+		static t_parsing_state LocationHandler(const Data &data);
 	};
 	std::stack<t_parsing_state> ctx_;
 	const std::list<Token> &tokens_;
@@ -64,7 +68,7 @@ class Parser: public Analyser {
 		t_parsing_state (*apply)(const Data &data);
 		std::string errormess;
 	};
-	static const s_trans l_transitions[9];
+	static const s_trans l_transitions[10];
 };
 
 class AServerState : public Parser {
