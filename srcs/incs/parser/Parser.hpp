@@ -35,15 +35,10 @@ class Parser: public Analyser {
 		void SetPath(const std::string &path) const;
 		void AddLocation(const std::string &name) const;
 		void AddServer(void) const;
-		// CommonConfig GetLastCommonCfg(void);
-		Data(Parser * const parser, Config *config,
-			 const std::list<Token>::const_iterator &itc_,
-			 const std::string &error_msg,
-			 std::stack<t_parsing_state> *ctx);
+		Data(Parser * const parser, const std::string &error_msg);
 	private:
 		Config *config_;
 	};
-	static t_parsing_state ParserMainLoop(Parser *parser);
 	// ============= handlers ===================
 	class StHandler {
 	public:
@@ -57,6 +52,7 @@ class Parser: public Analyser {
 		static t_parsing_state LocationHandler(const Data &data);
 		static t_parsing_state ServerHandler(const Data &data);
 	};
+	static t_parsing_state ParserMainLoop(Parser *parser);
 	std::stack<t_parsing_state> ctx_;
 	const std::list<Token> &tokens_;
 	Config *config_;
@@ -69,12 +65,7 @@ class Parser: public Analyser {
 		t_parsing_state (*apply)(const Data &data);
 		std::string errormess;
 	};
-	static const s_trans l_transitions[14];
-};
-
-class AServerState : public Parser {
- public:
-	t_parsing_state ServerNameHandler(void);
+	static const s_trans transitions[14];
 };
 
 #endif  // SRCS_INCS_PARSER_PARSER_HPP_

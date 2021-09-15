@@ -15,15 +15,12 @@ Parser::Parser(const std::list<Token> &token, Config *config) :
 	ctx_.push(Token::State::K_INIT);
 }
 
-Parser::Data::Data(Parser * const parser, Config *config,
-	 const std::list<Token>::const_iterator &itc_,
-	 const std::string &error_msg,
-				   std::stack<t_parsing_state> *ctx) :  current_(*itc_),
-											  error_msg_(error_msg),
-											  parser_(parser),
-											  ctx_(ctx),
-											  config_(config) {
-	(void)parser_;
+Parser::Data::Data(Parser * const parser, const std::string &error_msg)
+	:  current_(*parser->itc_),
+	  error_msg_(error_msg),
+	  parser_(parser),
+	   ctx_(&parser->ctx_),
+	   config_(parser->config_) {
 }
 
 void Parser::Data::SetListenPort(uint16_t port) const {
@@ -92,6 +89,7 @@ t_parsing_state Parser::StHandler::SyntaxFailer(const Data &data) {
 
 t_parsing_state Parser::StHandler::ExpKwHandlerClose(const Data &data) {
 	(void)data;
+	data.ctx_->pop();
 	return Token::State::K_EXIT;
 }
 
@@ -144,7 +142,7 @@ t_parsing_state Parser::StHandler::ServerHandler(const Data &data) {
 	return ParserMainLoop(data.parser_);
 }
 
-const struct Parser::s_trans Parser::l_transitions[14] = {
+const struct Parser::s_trans Parser::transitions[14] = {
 	{ .state = Token::State::K_INIT,
 	  .evt = ParsingEvents::OPEN,
 	  .apply = StHandler::InitHandler,
@@ -162,7 +160,7 @@ const struct Parser::s_trans Parser::l_transitions[14] = {
 	  .apply = StHandler::ExpKwHandlerKw,
 	  .errormess = ""},
 	{ .state = Token::State::K_EXP_KW,
-	  .evt = ParsingEvents::EV_NONE,
+	  .evt = ParsingEvents::EV_NONE,  // repe
 	  .apply = StHandler::SyntaxFailer,
 	  .errormess = "expected keyword in line "},
 	{ .state = Token::State::K_EXP_SEMIC,
@@ -203,30 +201,22 @@ const struct Parser::s_trans Parser::l_transitions[14] = {
 	  .errormess = "Expecting { after server directive"}
 };
 
-// this function should have a different name
-
 t_parsing_state Parser::ParserMainLoop(Parser *parser) {
 	t_parsing_state state;
 	for (state = Token::State::K_INIT;
-		 state != Token::State::K_EXIT
-			 && parser->itc_ != parser->ite_ ; parser->itc_++) {
+			 parser->itc_ != parser->ite_ ; parser->itc_++) {
 		t_Ev event = ParsingEvents::GetEvent(*parser->itc_);
 		for (size_t i = 0;
-			 i < sizeof(l_transitions) / sizeof(l_transitions[0]);
+			 i < sizeof(transitions) / sizeof(transitions[0]);
 			 ++i) {
-			if ((state == l_transitions[i].state)
-				|| (Token::State::K_NONE == l_transitions[i].state)) {
-				if ((event == l_transitions[i].evt)
-					|| (ParsingEvents::EV_NONE == l_transitions[i].evt)) {
-					// probably we can remove all the extra ctor data,
-					// since we're passing a parser anyhow
-					Data data(parser, parser->config_, parser->itc_,
-							  l_transitions[i].errormess, &parser->ctx_);
-					state = l_transitions[i].apply(data);
-					if (state == Token::State::K_EXIT) {
-						parser->ctx_.pop();
+			if ((state == transitions[i].state)
+				|| (Token::State::K_NONE == transitions[i].state)) {
+				if ((event == transitions[i].evt)
+					|| (ParsingEvents::EV_NONE == transitions[i].evt)) {
+					Data data(parser, transitions[i].errormess);
+					state = transitions[i].apply(data);
+					if (state == Token::State::K_EXIT)
 						return Token::State::K_EXP_KW;
-					}
 					break;
 				}
 			}
