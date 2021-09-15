@@ -44,8 +44,8 @@ void Parser::Data::AddIndex(const std::string &index) const {
 	config_->AddIndex(index, ctx_->top());
 }
 
-void Parser::Data::AddAutoindex(bool autoindex) const {
-	config_->AddAutoindex(autoindex, ctx_->top());
+void Parser::Data::AddAutoindex(const std::string &autoindex) const {
+	config_->AddAutoindex(autoindex == "on", ctx_->top());
 }
 
 void Parser::Data::SetClientMaxSz(uint32_t size) const {
@@ -87,9 +87,7 @@ t_parsing_state Parser::StHandler::ExpKwHandlerKw(const Data &data) {
 }
 
 t_parsing_state Parser::StHandler::AutoindexHandler(const Data &data) {
-	data.AddAutoindex(false);
-	if (data.current_.getRawData() == "on")
-		data.AddAutoindex(true);
+	data.AddAutoindex(data.current_.getRawData());
 	return Token::State::K_EXP_SEMIC;
 }
 
@@ -146,7 +144,7 @@ t_parsing_state Parser::HandleLocationEvents(void) {
 				if ((event == l_transitions[i].evt)
 					|| (ParsingEvents::EV_NONE == l_transitions[i].evt)) {
 					Data data(config_, itc_,
-							  std::string(l_transitions[i].errormess), &ctx_);
+							  l_transitions[i].errormess, &ctx_);
 					state = l_transitions[i].apply(data);
 					if (state == Token::State::K_EXIT)
 						return Token::State::K_EXP_KW;

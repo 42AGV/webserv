@@ -12,31 +12,6 @@
 #include <ServerConfig.hpp>
 #include <Config.hpp>
 
-/*class IObject {
-  public:
-  IObject(std::vector<ServerConfig> * const &server_settings,
-  const t_parsing_state ctx);
-  virtual ~IObject(void) = 0;
-  virtual IObject *getObject(const t_parsing_state keyword) = 0;
-// server
-virtual IObject &operator=(uint32_t listen_address) = 0;
-virtual IObject &operator=(uint16_t listen_port) = 0;
-virtual IObject &operator=(std::string server_name) = 0;
-// location
-//  virtual IObject &operator=(std::string limit_except) = 0;
-//  virtual IObject &operator=(std::string path) = 0;
-// common
-virtual IObject &operator=(bool autoindex) = 0;
-//  virtual IObject &operator=(uint32_t client_max_body_size) = 0;
-//  virtual IObject &operator=(std::string root) = 0;
-//  virtual IObject &operator=(std::string index) = 0;
-private:
-IObject *obj_;
-const t_parsing_state ctx_;
-const t_parsing_state kw_;
-std::vector<ServerConfig> *server_settings;
-};*/
-
 
 class Parser: public Analyser {
  public:
@@ -53,7 +28,7 @@ class Parser: public Analyser {
 		void AddServerName(const std::string &name) const;
 		void SetRoot(const std::string &root) const;
 		void AddIndex(const std::string &index) const;
-		void AddAutoindex(bool autoindex) const;
+		void AddAutoindex(const std::string &autoindex) const;
 		void SetClientMaxSz(uint32_t size) const;
 		void SetPath(const std::string &path) const;
 		Data(Config *config,
@@ -87,7 +62,7 @@ class Parser: public Analyser {
 		t_parsing_state state;
 		t_Ev evt;
 		t_parsing_state (*apply)(const Data &data);
-		const char errormess[35];
+		std::string errormess;
 	};
 	static const s_trans l_transitions[9];
 };
