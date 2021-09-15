@@ -18,42 +18,42 @@ Parser::Parser(const std::list<Token> &token, Config *config) :
 Parser::Data::Data(Config *config,
 	 const std::list<Token>::const_iterator &itc_,
 	 const std::string &error_msg,
-	const std::stack<t_parsing_state> &ctx) : current_(*itc_),
+	std::stack<t_parsing_state> *ctx) : current_(*itc_),
 											  error_msg_(error_msg),
-											  ctx_(ctx.top()),
+											  ctx_(ctx),
 											  config_(config) {
 }
 
 void Parser::Data::SetListenPort(uint16_t port) const {
-	config_->SetListenPort(port, ctx_);
+	config_->SetListenPort(port, ctx_->top());
 }
 
 void Parser::Data::SetListenAddress(uint32_t address) const {
-	config_->SetListenAddress(address, ctx_);
+	config_->SetListenAddress(address, ctx_->top());
 }
 
 void Parser::Data::AddServerName(const std::string &name) const {
-	config_->AddServerName(name, ctx_);
+	config_->AddServerName(name, ctx_->top());
 }
 
 void Parser::Data::SetRoot(const std::string &root) const {
-	config_->SetRoot(root, ctx_);
+	config_->SetRoot(root, ctx_->top());
 }
 
 void Parser::Data::AddIndex(const std::string &index) const {
-	config_->AddIndex(index, ctx_);
+	config_->AddIndex(index, ctx_->top());
 }
 
 void Parser::Data::AddAutoindex(bool autoindex) const {
-	config_->AddAutoindex(autoindex, ctx_);
+	config_->AddAutoindex(autoindex, ctx_->top());
 }
 
 void Parser::Data::SetClientMaxSz(uint32_t size) const {
-	config_->SetClientMaxSz(size, ctx_);
+	config_->SetClientMaxSz(size, ctx_->top());
 }
 
 void Parser::Data::SetPath(const std::string &path) const {
-	config_->SetPath(path, ctx_);
+	config_->SetPath(path, ctx_->top());
 }
 
 
@@ -146,7 +146,7 @@ t_parsing_state Parser::HandleLocationEvents(void) {
 				if ((event == l_transitions[i].evt)
 					|| (ParsingEvents::EV_NONE == l_transitions[i].evt)) {
 					Data data(config_, itc_,
-							  std::string(l_transitions[i].errormess), ctx_);
+							  std::string(l_transitions[i].errormess), &ctx_);
 					state = l_transitions[i].apply(data);
 					if (state == Token::State::K_EXIT)
 						return Token::State::K_EXP_KW;
@@ -192,7 +192,7 @@ t_parsing_state Parser::HandleServerEvents(void) {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("Expecting { "
 											"but didnt find it", LINE);
-			Data data(config_, itc_, "", ctx_);
+			Data data(config_, itc_, "", &ctx_);
 			state = StHandler::InitHandler(data);
 			break;
 		}
@@ -210,7 +210,7 @@ t_parsing_state Parser::HandleServerEvents(void) {
 			break;
 		}
 		case Token::State::K_SERVER_NAME: {
-			Data data(config_, itc_, "", ctx_);
+			Data data(config_, itc_, "", &ctx_);
 			state = StHandler::ServerNameHandler(data);
 			break;
 		}
@@ -275,7 +275,7 @@ void Parser::parse(void) {
 		case Token::State::K_INIT: {
 			if (event != ParsingEvents::OPEN)
 				throw Analyser::SyntaxError("We shouldnt be here", LINE);
-			Data data(config_, itc_, "", ctx_);
+			Data data(config_, itc_, "", &ctx_);
 			state = StHandler::InitHandler(data);
 			break;
 		}

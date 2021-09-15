@@ -59,9 +59,9 @@ class Parser: public Analyser {
 		Data(Config *config,
 			 const std::list<Token>::const_iterator &itc_,
 			 const std::string &error_msg,
-			 const std::stack<t_parsing_state> &ctx);
+			 std::stack<t_parsing_state> *ctx);
 	private:
-		const t_parsing_state ctx_;
+		std::stack<t_parsing_state> *ctx_;
 		Config *config_;
 	};
 	t_parsing_state HandleLocationEvents(void);
