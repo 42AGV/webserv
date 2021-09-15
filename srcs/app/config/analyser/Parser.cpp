@@ -37,6 +37,7 @@ void Parser::Data::SetListenAddress(uint32_t address) const {
 void Parser::Data::AddLocation(const std::string &path) const {
 	(void)path;
 	CommonConfig conf = config_->GetLastCommonCfg();
+	// path should be in location ctor
 	config_->AddLocation(conf, ctx_->top());
 }
 
@@ -64,6 +65,10 @@ void Parser::Data::SetPath(const std::string &path) const {
 	config_->SetPath(path, ctx_->top());
 }
 
+void Parser::Data::AddServer(void) const {
+	ServerConfig conf;
+	config_->AddServer(conf, ctx_->top());
+}
 
 t_parsing_state Parser::StHandler::InitHandler(const Data &data) {
 	(void) data;
@@ -121,7 +126,27 @@ t_parsing_state Parser::StHandler::ServerNameHandler(const Data &data) {
 	return Token::State::K_SERVER_NAME;
 }
 
-const struct Parser::s_trans Parser::l_transitions[12] = {
+
+t_parsing_state Parser::StHandler::LocationHandler(const Data &data) {
+	data.AddLocation("");
+	data.ctx_->push(Token::State::K_LOCATION);
+	//  this should be in the Location ctor
+	//  we should have getters/setters for all needed access to data
+	data.SetPath(data.current_.getRawData());
+	data.parser_->itc_++;
+	return HandleLocationEvents(data.parser_);
+}
+
+t_parsing_state Parser::StHandler::ServerHandler(const Data &data) {
+	data.AddServer();
+	data.ctx_->push(Token::State::K_SERVER);
+	//  this should be in the Location ctor
+	//  we should have getters/setters for all needed access to data
+	// data.parser_->itc_++;
+	return HandleLocationEvents(data.parser_);
+}
+
+const struct Parser::s_trans Parser::l_transitions[14] = {
 	{ .state = Token::State::K_INIT,
 	  .evt = ParsingEvents::OPEN,
 	  .apply = StHandler::InitHandler,
@@ -169,18 +194,18 @@ const struct Parser::s_trans Parser::l_transitions[12] = {
 	{ .state = Token::State::K_LOCATION,
 	  .evt = ParsingEvents::EV_NONE,
 	  .apply = StHandler::SyntaxFailer,
-	  .errormess = "Expecting path after location directive"}
+	  .errormess = "Expecting path after location directive"},
+	{ .state = Token::State::K_SERVER,
+	  .evt = ParsingEvents::OPEN,
+	  .apply = StHandler::ServerHandler,
+	  .errormess = ""},
+	{ .state = Token::State::K_SERVER,
+	  .evt = ParsingEvents::EV_NONE,
+	  .apply = StHandler::SyntaxFailer,
+	  .errormess = "Expecting { after server directive"}
 };
 
-t_parsing_state Parser::StHandler::LocationHandler(const Data &data) {
-	data.AddLocation("");
-	data.ctx_->push(Token::State::K_LOCATION);
-	//  this should be in the Location ctor
-	//  we should have getters/setters for all needed access to data
-	data.SetPath(data.current_.getRawData());
-	data.parser_->itc_++;
-	return HandleLocationEvents(data.parser_);
-}
+// this function should have a different name
 
 t_parsing_state Parser::HandleLocationEvents(Parser *parser) {
 	t_parsing_state state;
@@ -211,46 +236,5 @@ t_parsing_state Parser::HandleLocationEvents(Parser *parser) {
 }
 
 void Parser::parse(void) {
-	t_Ev event;
-	t_parsing_state state = Token::State::K_INIT;
-	while (state != Token::State::K_EXIT) {
-#ifndef DBG
-		size_t line =  itc_->GetLine();
-#endif
-		event = itc_->GetEvent();
-		switch (state) {
-		case Token::State::K_INIT: {
-			if (event != ParsingEvents::OPEN)
-				throw Analyser::SyntaxError("We shouldnt be here", LINE);
-			Data data(this, config_, itc_, "", &ctx_);
-			state = StHandler::InitHandler(data);
-			break;
-		}
-		case Token::State::K_EXP_KW: {
-			if (event == ParsingEvents::CLOSE) {
-				return;
-			} else {
-				if (itc_->GetState() != Token::State::K_SERVER)
-					// then invalid keyword for this context
-					throw Analyser::SyntaxError("Syntax Error near unexpected "
-										"token in line", LINE);
-				else
-					state = Token::State::K_SERVER;
-			}
-			break;
-		}
-		case Token::State::K_SERVER: {
-			config_->AddServer(ServerConfig(), ctx_.top());
-			ctx_.push(Token::State::K_SERVER);
-			state = HandleLocationEvents(this);
-			break;
-		}
-		default:
-			throw Analyser::SyntaxError("Syntax Error near unexpected "
-										"token in line", LINE);
-		}
-		itc_++;
-		if (itc_ == ite_)
-			throw Analyser::SyntaxError("Unexpected end of file", LINE);
-	}
+	HandleLocationEvents(this);
 }

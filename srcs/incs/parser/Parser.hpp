@@ -34,6 +34,7 @@ class Parser: public Analyser {
 		void SetClientMaxSz(uint32_t size) const;
 		void SetPath(const std::string &path) const;
 		void AddLocation(const std::string &name) const;
+		void AddServer(void) const;
 		// CommonConfig GetLastCommonCfg(void);
 		Data(Parser * const parser, Config *config,
 			 const std::list<Token>::const_iterator &itc_,
@@ -55,6 +56,7 @@ class Parser: public Analyser {
 		static t_parsing_state ExpKwHandlerKw(const Data &data);
 		static t_parsing_state AutoindexHandler(const Data &data);
 		static t_parsing_state LocationHandler(const Data &data);
+		static t_parsing_state ServerHandler(const Data &data);
 	};
 	std::stack<t_parsing_state> ctx_;
 	const std::list<Token> &tokens_;
@@ -68,7 +70,7 @@ class Parser: public Analyser {
 		t_parsing_state (*apply)(const Data &data);
 		std::string errormess;
 	};
-	static const s_trans l_transitions[12];
+	static const s_trans l_transitions[14];
 };
 
 class AServerState : public Parser {
