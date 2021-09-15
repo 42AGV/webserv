@@ -3,7 +3,7 @@
 #ifdef DBG
 # define LINE __LINE__
 #else
-# define LINE line
+# define LINE data.current_.GetLine()
 #endif
 
 Parser::Parser(const std::list<Token> &token, Config *config) :
@@ -22,6 +22,9 @@ Parser::Data::Data(Parser * const parser, const std::string &error_msg)
 	   ctx_(&parser->ctx_),
 	   config_(parser->config_) {
 }
+
+// probably the context sensitiveness for the setters should be implemented
+// in here Parser.hpp/cpp, not in Config.hpp/cpp
 
 void Parser::Data::SetListenPort(uint16_t port) const {
 	config_->SetListenPort(port, ctx_->top());
@@ -84,7 +87,7 @@ t_parsing_state Parser::StHandler::SyntaxFailer(const Data &data) {
 	std::cerr << "Event type: \""<<  data.current_.GetEvent() << "\"\n";
 	std::cerr << "State type: \""<<  data.current_.GetState() << "\"\n";
 	std::string result = "Syntax error: " + data.error_msg_;
-	throw SyntaxError(result, data.current_.GetLine());
+	throw SyntaxError(result, LINE);
 }
 
 t_parsing_state Parser::StHandler::ExpKwHandlerClose(const Data &data) {
@@ -104,9 +107,6 @@ t_parsing_state Parser::StHandler::AutoindexHandler(const Data &data) {
 
 t_parsing_state Parser::StHandler::ServerNameHandler(const Data &data) {
 	static size_t args = 0;
-#ifndef DBG
-	size_t line =  data.current_.GetLine();
-#endif
 	t_Ev event = ParsingEvents::GetEvent(data.current_);
 
 	if (args == 0 && event == ParsingEvents::SEMIC)
