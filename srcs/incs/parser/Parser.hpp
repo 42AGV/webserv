@@ -62,7 +62,6 @@ class Parser: public Analyser {
 			 const std::stack<t_parsing_state> &ctx);
 	private:
 		const t_parsing_state ctx_;
-		std::vector<ServerConfig> *server_settings_;
 		Config *config_;
 	};
 	t_parsing_state HandleLocationEvents(void);
@@ -81,7 +80,6 @@ class Parser: public Analyser {
 	std::stack<t_parsing_state> ctx_;
 	const std::list<Token> &tokens_;
 	Config *config_;
-	std::vector<ServerConfig> *server_settings_;
 	const std::list<Token>::const_iterator itb_;
 	const std::list<Token>::const_iterator ite_;
 	std::list<Token>::const_iterator itc_;

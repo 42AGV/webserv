@@ -9,7 +9,6 @@
 Parser::Parser(const std::list<Token> &token, Config *config) :
 	tokens_(token),
 	config_(config),
-	server_settings_(&config->GetServersSettings()),
 	itb_(tokens_.begin()),
 	ite_(tokens_.end()),
 	itc_(itb_) {
@@ -22,7 +21,6 @@ Parser::Data::Data(Config *config,
 	const std::stack<t_parsing_state> &ctx) : current_(*itc_),
 											  error_msg_(error_msg),
 											  ctx_(ctx.top()),
-								server_settings_(&config->GetServersSettings()),
 											  config_(config) {
 }
 
@@ -149,17 +147,13 @@ t_parsing_state Parser::HandleLocationEvents(void) {
 					|| (ParsingEvents::EV_NONE == l_transitions[i].evt)) {
 					Data data(config_, itc_,
 							  std::string(l_transitions[i].errormess), ctx_);
-					// errormess_ = new std::string(l_transitions[i].errormess);
 					state = l_transitions[i].apply(data);
-					// delete errormess_;
+					if (state == Token::State::K_EXIT)
+						return Token::State::K_EXP_KW;
 					break;
 				}
 			}
 		}
-	}
-	if (state == Token::State::K_EXIT) {
-		itc_--;
-		return Token::State::K_EXP_KW;
 	}
 	throw SyntaxError("Unclosed scope in line", (--itc_)->GetLine());
 }
@@ -206,10 +200,9 @@ t_parsing_state Parser::HandleServerEvents(void) {
 			if (event != ParsingEvents::URI) {
 				throw Analyser::SyntaxError("Invalid keyword in line", LINE);
 			} else {
-				Location location((CommonConfig()));
+				config_->AddLocation(CommonConfig(), ctx_.top());
 				ctx_.push(Token::State::K_LOCATION);
-				server_settings_->back().locations.push_back(location);
-				server_settings_->back().locations.back().path = itc_->getRawData();
+				config_->SetPath(itc_->getRawData(), ctx_.top());
 				itc_++;
 				state = HandleLocationEvents();
 				ctx_.pop();
@@ -300,7 +293,7 @@ void Parser::parse(void) {
 			break;
 		}
 		case Token::State::K_SERVER: {
-			server_settings_->push_back(ServerConfig());
+			config_->AddServer(ServerConfig(), ctx_.top());
 			ctx_.push(Token::State::K_SERVER);
 			state = HandleServerEvents();
 			ctx_.pop();

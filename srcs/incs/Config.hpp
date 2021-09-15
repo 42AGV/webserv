@@ -22,6 +22,8 @@ class Config {
 	void AddAutoindex(bool autoindex, t_parsing_state ctx);
 	void SetClientMaxSz(uint32_t size, t_parsing_state ctx);
 	void SetPath(const std::string &path, t_parsing_state ctx);
+	void AddServer(const ServerConfig &server, t_parsing_state ctx);
+	void AddLocation(const CommonConfig &common, t_parsing_state ctx);
 };
 
 std::ostream &operator<<(std::ostream &o, Config &c);
