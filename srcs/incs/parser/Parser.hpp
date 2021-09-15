@@ -68,7 +68,7 @@ class Parser: public Analyser {
 		t_parsing_state (*apply)(const Data &data);
 		std::string errormess;
 	};
-	static const s_trans l_transitions[10];
+	static const s_trans l_transitions[12];
 };
 
 class AServerState : public Parser {

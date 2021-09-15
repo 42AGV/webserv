@@ -121,7 +121,7 @@ t_parsing_state Parser::StHandler::ServerNameHandler(const Data &data) {
 	return Token::State::K_SERVER_NAME;
 }
 
-const struct Parser::s_trans Parser::l_transitions[10] = {
+const struct Parser::s_trans Parser::l_transitions[12] = {
 	{ .state = Token::State::K_INIT,
 	  .evt = ParsingEvents::OPEN,
 	  .apply = StHandler::InitHandler,
@@ -162,11 +162,21 @@ const struct Parser::s_trans Parser::l_transitions[10] = {
 	  .evt = ParsingEvents::EV_NONE,
 	  .apply = StHandler::ServerNameHandler,
 	  .errormess = ""},
+	{ .state = Token::State::K_LOCATION,
+	  .evt = ParsingEvents::URI,
+	  .apply = StHandler::LocationHandler,
+	  .errormess = ""},
+	{ .state = Token::State::K_LOCATION,
+	  .evt = ParsingEvents::EV_NONE,
+	  .apply = StHandler::SyntaxFailer,
+	  .errormess = "Expecting path after location directive"}
 };
 
 t_parsing_state Parser::StHandler::LocationHandler(const Data &data) {
 	data.AddLocation("");
 	data.ctx_->push(Token::State::K_LOCATION);
+	//  this should be in the Location ctor
+	//  we should have getters/setters for all needed access to data
 	data.SetPath(data.current_.getRawData());
 	data.parser_->itc_++;
 	return HandleLocationEvents(data.parser_);
@@ -200,88 +210,6 @@ t_parsing_state Parser::HandleLocationEvents(Parser *parser) {
 	throw SyntaxError("Unclosed scope in line", (--parser->itc_)->GetLine());
 }
 
-t_parsing_state Parser::HandleServerEvents(void) {
-	t_parsing_state state = Token::State::K_INIT;
-	while (state != Token::State::K_EXIT) {
-#ifndef DBG
-		size_t line =  itc_->GetLine();
-#endif
-		t_Ev event = ParsingEvents::GetEvent(*itc_);
-		switch (state) {
-		case Token::State::K_INIT: {
-			if (event != ParsingEvents::OPEN)
-				throw Analyser::SyntaxError("Expecting { "
-											"but didnt find it", LINE);
-			Data data(this, config_, itc_, "", &ctx_);
-			state = StHandler::InitHandler(data);
-			break;
-		}
-		case Token::State::K_LOCATION: {
-			if (event != ParsingEvents::URI) {
-				throw Analyser::SyntaxError("Invalid keyword in line", LINE);
-			} else {
-				config_->AddLocation(CommonConfig(), ctx_.top());
-				ctx_.push(Token::State::K_LOCATION);
-				config_->SetPath(itc_->getRawData(), ctx_.top());
-				itc_++;
-				state = HandleLocationEvents(this);
-			}
-			break;
-		}
-		case Token::State::K_SERVER_NAME: {
-			Data data(this, config_, itc_, "", &ctx_);
-			state = StHandler::ServerNameHandler(data);
-			break;
-		}
-		case Token::State::K_EXP_KW : {
-			if (event == ParsingEvents::CLOSE) {
-				return Token::State::K_EXP_KW;
-			} else {
-				if (event != ParsingEvents::KEYWORD) {
-					throw Analyser::SyntaxError("Invalid keyword "
-												"in line", LINE);
-				} else {
-					state = itc_->GetState();
-#ifdef DBG
-					std::cerr << "Raw data: \""<< itc_->getRawData() << "\"\n";
-					std::cerr << "Token type: \""<< itc_->GetTokenTypeStr()
-							  << "\"\n";
-					std::cerr << "Event type: \""<<  itc_->GetEvent() << "\"\n";
-					std::cerr << "State type: \""<<  itc_->GetState() << "\"\n";
-#endif
-				}
-			}
-			break;
-		}
-		case Token::State::K_EXP_SEMIC: {
-			if (event != ParsingEvents::SEMIC)
-				throw Analyser::SyntaxError("Invalid Token "
-											"in line", LINE);
-			state = Token::State::K_EXP_KW;
-			break;
-		}
-		case Token::State::K_LISTEN:				// fill this up
-		case Token::State::K_ROOT:					// fill this up
-		case Token::State::K_CLIENT_MAX_BODY_SIZE:  // fill this up
-		case Token::State::K_ERROR_PAGE:			// fill this up
-		case Token::State::K_RETURN:				// fill this up
-		case Token::State::K_AUTOINDEX:				// fill this up
-		case Token::State::K_INDEX:					// fill this up
-		case Token::State::K_UPLOAD_STORE:			// fill this up
-		case Token::State::K_CGI_ASSIGN:			// fill this up
-		default: {
-			throw Analyser::SyntaxError("Invalid keyword "
-								"in line", itc_->GetLine());  // line);
-		}
-		}
-		itc_++;
-		if (itc_ == ite_)
-			throw Analyser::SyntaxError("Unexpected end of file", LINE);
-	}
-	return Token::State::K_LAST_INVALID_STATE;
-}
-
-
 void Parser::parse(void) {
 	t_Ev event;
 	t_parsing_state state = Token::State::K_INIT;
@@ -314,8 +242,7 @@ void Parser::parse(void) {
 		case Token::State::K_SERVER: {
 			config_->AddServer(ServerConfig(), ctx_.top());
 			ctx_.push(Token::State::K_SERVER);
-			state = HandleServerEvents();
-			ctx_.pop();
+			state = HandleLocationEvents(this);
 			break;
 		}
 		default:
