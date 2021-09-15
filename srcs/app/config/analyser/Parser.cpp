@@ -134,16 +134,14 @@ t_parsing_state Parser::StHandler::LocationHandler(const Data &data) {
 	//  we should have getters/setters for all needed access to data
 	data.SetPath(data.current_.getRawData());
 	data.parser_->itc_++;
-	return HandleLocationEvents(data.parser_);
+	return ParserMainLoop(data.parser_);
 }
 
 t_parsing_state Parser::StHandler::ServerHandler(const Data &data) {
 	data.AddServer();
 	data.ctx_->push(Token::State::K_SERVER);
-	//  this should be in the Location ctor
 	//  we should have getters/setters for all needed access to data
-	// data.parser_->itc_++;
-	return HandleLocationEvents(data.parser_);
+	return ParserMainLoop(data.parser_);
 }
 
 const struct Parser::s_trans Parser::l_transitions[14] = {
@@ -207,7 +205,7 @@ const struct Parser::s_trans Parser::l_transitions[14] = {
 
 // this function should have a different name
 
-t_parsing_state Parser::HandleLocationEvents(Parser *parser) {
+t_parsing_state Parser::ParserMainLoop(Parser *parser) {
 	t_parsing_state state;
 	for (state = Token::State::K_INIT;
 		 state != Token::State::K_EXIT
@@ -220,6 +218,8 @@ t_parsing_state Parser::HandleLocationEvents(Parser *parser) {
 				|| (Token::State::K_NONE == l_transitions[i].state)) {
 				if ((event == l_transitions[i].evt)
 					|| (ParsingEvents::EV_NONE == l_transitions[i].evt)) {
+					// probably we can remove all the extra ctor data,
+					// since we're passing a parser anyhow
 					Data data(parser, parser->config_, parser->itc_,
 							  l_transitions[i].errormess, &parser->ctx_);
 					state = l_transitions[i].apply(data);
@@ -236,5 +236,5 @@ t_parsing_state Parser::HandleLocationEvents(Parser *parser) {
 }
 
 void Parser::parse(void) {
-	HandleLocationEvents(this);
+	ParserMainLoop(this);
 }

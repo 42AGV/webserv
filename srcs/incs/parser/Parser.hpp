@@ -43,8 +43,7 @@ class Parser: public Analyser {
 	private:
 		Config *config_;
 	};
-	static t_parsing_state HandleLocationEvents(Parser *parser);
-	t_parsing_state HandleServerEvents(void);
+	static t_parsing_state ParserMainLoop(Parser *parser);
 	// ============= handlers ===================
 	class StHandler {
 	public:
