@@ -85,17 +85,12 @@ void Config::AddServer(const ServerConfig &server, t_parsing_state ctx_) {
 	servers_settings_.push_back(server);
 }
 
-void Config::AddLocation(const CommonConfig &common, t_parsing_state ctx_) {
+void Config::AddLocation(const std::string &path, const CommonConfig &common,
+						t_parsing_state ctx_) {
 	if (ctx_ != Token::State::K_SERVER)
 		throw std::invalid_argument("Invalid context for location");
-	Location location(common);
+	Location location(path, common);
 	servers_settings_.back().locations.push_back(location);
-}
-
-void Config::SetPath(const std::string &path, t_parsing_state ctx_) {
-	if (ctx_ != Token::State::K_LOCATION)
-		throw std::invalid_argument("Invalid context for path");
-	servers_settings_.back().locations.back().path = path;
 }
 
 CommonConfig Config::GetLastCommonCfg(void) {

@@ -35,10 +35,9 @@ void Parser::Data::SetListenAddress(uint32_t address) const {
 }
 
 void Parser::Data::AddLocation(const std::string &path) const {
-	(void)path;
 	CommonConfig conf = config_->GetLastCommonCfg();
 	// path should be in location ctor
-	config_->AddLocation(conf, ctx_->top());
+	config_->AddLocation(path, conf, ctx_->top());
 }
 
 void Parser::Data::AddServerName(const std::string &name) const {
@@ -59,10 +58,6 @@ void Parser::Data::AddAutoindex(const std::string &autoindex) const {
 
 void Parser::Data::SetClientMaxSz(uint32_t size) const {
 	config_->SetClientMaxSz(size, ctx_->top());
-}
-
-void Parser::Data::SetPath(const std::string &path) const {
-	config_->SetPath(path, ctx_->top());
 }
 
 void Parser::Data::AddServer(void) const {
@@ -130,7 +125,6 @@ t_parsing_state Parser::StHandler::LocationHandler(const Data &data) {
 	data.ctx_->push(Token::State::K_LOCATION);
 	//  this should be in the Location ctor
 	//  we should have getters/setters for all needed access to data
-	data.SetPath(data.current_.getRawData());
 	data.parser_->itc_++;
 	return ParserMainLoop(data.parser_);
 }

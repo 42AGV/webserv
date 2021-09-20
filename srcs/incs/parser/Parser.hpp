@@ -33,7 +33,6 @@ class Parser: public Analyser {
 		void AddIndex(const std::string &index) const;
 		void AddAutoindex(const std::string &autoindex) const;
 		void SetClientMaxSz(uint32_t size) const;
-		void SetPath(const std::string &path) const;
 		void AddLocation(const std::string &name) const;
 		void AddServer(void) const;
 		Data(Parser * const parser, const std::string &error_msg);
