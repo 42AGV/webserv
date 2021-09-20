@@ -121,7 +121,7 @@ t_parsing_state Parser::StHandler::ServerNameHandler(const Data &data) {
 
 
 t_parsing_state Parser::StHandler::LocationHandler(const Data &data) {
-	data.AddLocation(data.parser_->itc_->getRawData());
+	data.AddLocation(data.current_.getRawData());
 	data.ctx_->push(Token::State::K_LOCATION);
 	//  this should be in the Location ctor
 	//  we should have getters/setters for all needed access to data
