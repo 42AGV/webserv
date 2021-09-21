@@ -8,7 +8,7 @@
 #include <vector>
 #include <stack>
 #include <parser/Lexer.hpp>
-#include <parser/ConfigSetters.hpp>
+#include <parser/ParserAPI.hpp>
 #include <parser/ParsingEvents.hpp>
 
 

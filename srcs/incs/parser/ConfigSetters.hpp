@@ -6,6 +6,4 @@
 #include <parser/ParserAPI.hpp>
 #include <ServerConfig.hpp>
 
-std::ostream &operator<<(std::ostream &o, ParserAPI &c);
-
 #endif  // SRCS_INCS_PARSER_CONFIGSETTERS_HPP_

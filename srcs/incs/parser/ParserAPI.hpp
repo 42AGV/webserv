@@ -26,4 +26,6 @@ class ParserAPI {
 	void AddLocation(const std::string &path, t_parsing_state ctx);
 };
 
+std::ostream &operator<<(std::ostream &o, ParserAPI &c);
+
 #endif  // SRCS_INCS_PARSER_PARSERAPI_HPP_
