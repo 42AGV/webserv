@@ -5,7 +5,7 @@
 #include <vector>
 #include <parser/Token.hpp>
 
-class ServerConfig;
+struct ServerConfig;
 
 class ParserAPI {
  private:
