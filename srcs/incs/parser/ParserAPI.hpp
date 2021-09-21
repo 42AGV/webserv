@@ -1,6 +1,7 @@
 #ifndef SRCS_INCS_PARSER_PARSERAPI_HPP_
 #define SRCS_INCS_PARSER_PARSERAPI_HPP_
 
+#include <sstream>
 #include <parser/Token.hpp>
 #include <parser/ConfigSetters.hpp>
 #include <ServerConfig.hpp>
