@@ -1,4 +1,5 @@
 CXXFLAGS = -Wall -Werror -Wextra -std=c++11 -g3 # catch2 necesita c++11
+OS ?= $(shell uname -s)
 INC_DIR = $(SRC_DIR)/incs $(SRC_DIR)/incs/test
 
 # if you create a new folder with source files, it should be in the srcs
