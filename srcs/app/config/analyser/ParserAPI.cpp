@@ -179,3 +179,33 @@ std::ostream &operator<<(std::ostream &o, ParserAPI &c) {
 	}
 	return o;
 }
+
+std::ostream &operator<<(std::ostream &o,
+						 const std::vector<ServerConfig> &server_settings) {
+	std::vector<ServerConfig>::const_iterator it =
+		server_settings.begin();
+	for(size_t j = 0; it != server_settings.end(); ++it, ++j) {
+		o << "server " << j << ":\n";
+		o << "\tlisten_address : " << it->listen_address << "\n";
+		o << "\tlisten_port : " << it->listen_port << "\n";
+		o << "\tserver_names :" << "\n";
+		std::vector<std::string>::const_iterator itn = it->server_name.begin();
+		for(size_t i = 0; itn != it->server_name.end(); ++itn, ++i) {
+			o << "\t\tserver_name " << i << ": " << *itn << "\n";
+		}
+		o << printCommon(it->common, 1);
+		o << "\tlocations :" << "\n";
+		std::vector<Location>::const_iterator itl = it->locations.begin();
+		for(size_t i = 0; itl != it->locations.end(); ++itl, ++i) {
+			o << "\tpath " << i << ": "<< itl->path << "\n";
+			o << "\t\tlimit except : \n";
+			std::vector<Location::HttpMethod>::const_iterator itle =
+				itl->limit_except.begin();
+			for (size_t k = 0; itle != itl->limit_except.end();
+				 ++itle, ++k)
+				o << k << "\t\t\t" << *itle << "\n";
+			o << printCommon(itl->common, 2);
+		}
+	}
+	return o;
+}

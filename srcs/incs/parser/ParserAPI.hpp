@@ -28,4 +28,7 @@ class ParserAPI {
 
 std::ostream &operator<<(std::ostream &o, ParserAPI &c);
 
+std::ostream &operator<<(std::ostream &o,
+						 const std::vector<ServerConfig> &server_settings);
+
 #endif  // SRCS_INCS_PARSER_PARSERAPI_HPP_

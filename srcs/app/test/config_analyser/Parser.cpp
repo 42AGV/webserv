@@ -9,6 +9,36 @@
 #include <parser/ParserAPI.hpp>
 #include <Config.hpp>
 
+// class test {
+// public:
+// 	explicit test(const std::string &path) : path_(path) {}
+// 	std::vector<ServerConfig> getServerSettings(void) {
+// 		Preprocessor file(path_);
+// 		Lexer lexed(file.GetFileBuffer());
+// 		std::list<Token> *tokens = lexed.GetTokens();
+// 		std::vector<ServerConfig> servers_settings;
+// 		ParserAPI config(&servers_settings);
+// 		Parser parser(*tokens, &config);
+// 		parser.parse();
+// 		return config.GetServersSettings();
+// 	}
+// private:
+// 	std::string path_;
+// };
+
+static std::vector<ServerConfig> getServerSettings(void) {
+	std::string path = "srcs/app/test/config_analyser/"
+		"nginx_docker/vol/http.d/default2.conf";
+	Preprocessor file(path);
+	Lexer lexed(file.GetFileBuffer());
+	std::list<Token> *tokens = lexed.GetTokens();
+	std::vector<ServerConfig> servers_settings;
+	ParserAPI config(&servers_settings);
+	Parser parser(*tokens, &config);
+	parser.parse();
+	return config.GetServersSettings();
+}
+
 TEST_CASE("Testing the parser", "[parser]") {
 	std::string expected = "server 0:\n"
 							"\tlisten_address : 2130706433\n"
@@ -134,18 +164,9 @@ TEST_CASE("Testing the parser", "[parser]") {
 							"\t\tcgi_assign map : \n";
 	std::ostringstream result;
 	try {
-		std::string path = "srcs/app/test/config_analyser/"
-			"nginx_docker/vol/http.d/default2.conf";
-		Preprocessor file(path);
-		Lexer lexed(file.GetFileBuffer());
-		std::list<Token> *tokens = lexed.GetTokens();
-		Config sconf;
-		std::vector<ServerConfig> servers_settings;
-		ParserAPI config(&servers_settings);
-		Parser parser(*tokens, &config);
-		parser.parse();
-		result << config;
-		std::cout << config;
+		std::vector<ServerConfig> cnf = getServerSettings();
+		result << cnf;
+		std::cout << cnf;
 		std::cout << "=================  VS =================\n";
 		std::cout << expected;
 		REQUIRE_FALSE(memcmp(result.str().c_str(), expected.c_str(),
