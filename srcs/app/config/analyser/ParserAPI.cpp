@@ -88,6 +88,11 @@ static CommonConfig GetLastCommonCfg(std::vector<ServerConfig>
 	config.client_max_body_size
 		= servers_settings_->back().common.client_max_body_size;
 	config.index = servers_settings_->back().common.index;
+	config.error_pages = servers_settings_->back().common.error_pages;
+	config.upload_store = servers_settings_->back().common.upload_store;
+	config.return_status = servers_settings_->back().common.return_status;
+	config.return_url = servers_settings_->back().common.return_url;
+	config.cgi_assign = servers_settings_->back().common.cgi_assign;
 	return config;
 }
 
@@ -112,10 +117,30 @@ std::ostream &operator<<(std::ostream &o, ParserAPI &c) {
 		  << it->common.client_max_body_size << "\n";
 		o << "\tautoindex : " << it->common.autoindex << "\n";
 		o << "\tindex : " << it->common.index << "\n";
+		o << "\tupload_store : " << it->common.upload_store << "\n";
+		o << "\treturn_status : " << it->common.return_status << "\n";
+		o << "\treturn_url : " << it->common.return_url << "\n";
 		o << "\tserver_names :" << "\n";
 		std::vector<std::string>::iterator itn = it->server_name.begin();
 		for(size_t i = 0; itn != it->server_name.end(); ++itn, ++i) {
 			o << "\t\tserver_name " << i << ": " << *itn << "\n";
+		}
+		o << "\terror_pages map : " << "\n";
+		for(CommonConfig::ErrorPagesMap::iterator
+				iterr_pages = it->common.error_pages.begin();
+			iterr_pages != it->common.error_pages.end();
+			++iterr_pages) {
+			o << "\t\terror code: " << iterr_pages->first << ", error URI:"
+			  << iterr_pages->second << "\n";
+		}
+		o << "\tcgi_assign map : " << "\n";
+		for(CommonConfig::CgiAssignMap::iterator
+				itcgi_ass = it->common.cgi_assign.begin();
+			itcgi_ass != it->common.cgi_assign.end();
+			++itcgi_ass) {
+			o << "\t\tfile extension: " << itcgi_ass->first <<
+				", binary handler path:"
+			  << itcgi_ass->second << "\n";
 		}
 		o << "\tlocations :" << "\n";
 		std::vector<Location>::iterator itl = it->locations.begin();
@@ -126,6 +151,26 @@ std::ostream &operator<<(std::ostream &o, ParserAPI &c) {
 			  << itl->common.client_max_body_size << "\n";
 			o << "\t\t\tautoindex : " << itl->common.autoindex << "\n";
 			o << "\t\t\tindex : " << itl->common.index << "\n";
+			o << "\t\t\tupload_store : " << it->common.upload_store << "\n";
+			o << "\t\t\treturn_status : " << it->common.return_status << "\n";
+			o << "\t\t\treturn_url : " << it->common.return_url << "\n";
+			o << "\t\t\terror_pages map : " << "\n";
+			for(CommonConfig::ErrorPagesMap::iterator
+					iterr_pages = itl->common.error_pages.begin();
+				iterr_pages != itl->common.error_pages.end();
+				++iterr_pages) {
+				o << "\t\t\t\terror code: " << iterr_pages->first << ", error URI:"
+				  << iterr_pages->second << "\n";
+			}
+			o << "\t\t\tcgi_assign map : " << "\n";
+			for(CommonConfig::CgiAssignMap::iterator
+					itcgi_ass = itl->common.cgi_assign.begin();
+				itcgi_ass != itl->common.cgi_assign.end();
+				++itcgi_ass) {
+				o << "\t\t\t\tfile extension: " << itcgi_ass->first <<
+					", binary handler path:"
+				  << itcgi_ass->second << "\n";
+			}
 		}
 	}
 	return o;
