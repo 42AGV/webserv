@@ -9,34 +9,28 @@
 #include <parser/ParserAPI.hpp>
 #include <Config.hpp>
 
-// class test {
-// public:
-// 	explicit test(const std::string &path) : path_(path) {}
-// 	std::vector<ServerConfig> getServerSettings(void) {
-// 		Preprocessor file(path_);
-// 		Lexer lexed(file.GetFileBuffer());
-// 		std::list<Token> *tokens = lexed.GetTokens();
-// 		std::vector<ServerConfig> servers_settings;
-// 		ParserAPI config(&servers_settings);
-// 		Parser parser(*tokens, &config);
-// 		parser.parse();
-// 		return config.GetServersSettings();
-// 	}
-// private:
-// 	std::string path_;
-// };
+class ParserWrapper {
+ public:
+	explicit ParserWrapper(const std::string &path) : path_(path) {}
+	std::vector<ServerConfig> GetServersSettings(void) {
+		Preprocessor file(path_);
+		Lexer lexed(file.GetFileBuffer());
+		std::list<Token> tokens = *lexed.GetTokens();
+		std::vector<ServerConfig> servers_settings;
+		ParserAPI config(&servers_settings);
+		Parser parser(tokens, &config);
+		parser.parse();
+		return config.GetServersSettings();
+	}
+ private:
+	std::string path_;
+};
 
 static std::vector<ServerConfig> getServerSettings(void) {
 	std::string path = "srcs/app/test/config_analyser/"
 		"nginx_docker/vol/http.d/default2.conf";
-	Preprocessor file(path);
-	Lexer lexed(file.GetFileBuffer());
-	std::list<Token> *tokens = lexed.GetTokens();
-	std::vector<ServerConfig> servers_settings;
-	ParserAPI config(&servers_settings);
-	Parser parser(*tokens, &config);
-	parser.parse();
-	return config.GetServersSettings();
+	ParserWrapper tst(path);
+	return tst.GetServersSettings();
 }
 
 TEST_CASE("Testing the parser", "[parser]") {
