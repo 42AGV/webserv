@@ -10,6 +10,6 @@ bool	Config::LoadFile(const std::string &pathname) {
 	return false;
 }
 
-std::vector<ServerConfig>	&Config::GetServersSettings() {
+std::vector<ServerConfig>	Config::GetServersSettings() const {
 	return servers_settings_;
 }

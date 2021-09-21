@@ -140,7 +140,8 @@ TEST_CASE("Testing the parser", "[parser]") {
 		Lexer lexed(file.GetFileBuffer());
 		std::list<Token> *tokens = lexed.GetTokens();
 		Config sconf;
-		ParserAPI config(&sconf.GetServersSettings());
+		std::vector<ServerConfig> servers_settings;
+		ParserAPI config(&servers_settings);
 		Parser parser(*tokens, &config);
 		parser.parse();
 		result << config;
