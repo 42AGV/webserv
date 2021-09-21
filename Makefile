@@ -1,9 +1,10 @@
 NAME = webserv
 CXX ?= clang++
-OS ?= $(shell if [ "$$(uname -s)" = "Linux" ] ; then echo "__PLATFORM_LINUX" ; \
+OSFLAGS ?= $(shell if [ "$$(uname -s)" = "Linux" ] ; \
+	then echo "__PLATFORM_LINUX" ; \
 	else echo "__PLATFORM_MACOS" ; fi)
 export CXX
-export OS
+export OSFLAGS
 CXXFLAGS = -Wall -Werror -Wextra -std=c++98 -g3
 LINT = cpplint
 LINTFLAGS = --recursive --exclude=srcs/incs/test/catch2.hpp \
