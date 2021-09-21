@@ -7,29 +7,13 @@
 #include <parser/Preprocessor.hpp>
 #include <parser/Parser.hpp>
 #include <parser/ParserAPI.hpp>
+#include <parser/ConfigSetters.hpp>
 #include <Config.hpp>
-
-class ParserWrapper {
- public:
-	explicit ParserWrapper(const std::string &path) : path_(path) {}
-	std::vector<ServerConfig> GetServersSettings(void) {
-		Preprocessor file(path_);
-		Lexer lexed(file.GetFileBuffer());
-		std::list<Token> tokens = *lexed.GetTokens();
-		std::vector<ServerConfig> servers_settings;
-		ParserAPI config(&servers_settings);
-		Parser parser(tokens, &config);
-		parser.parse();
-		return config.GetServersSettings();
-	}
- private:
-	std::string path_;
-};
 
 static std::vector<ServerConfig> getServerSettings(void) {
 	std::string path = "srcs/app/test/config_analyser/"
 		"nginx_docker/vol/http.d/default2.conf";
-	ParserWrapper tst(path);
+	ConfigParserAPI tst(path);
 	return tst.GetServersSettings();
 }
 
