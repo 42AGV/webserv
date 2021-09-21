@@ -1,4 +1,4 @@
-#include <parser/ParserAPI.hpp>
+#include <parser/ConfigSetters.hpp>
 
 ParserAPI::ParserAPI(std::vector<ServerConfig> *server_settings) :
 	servers_settings_(server_settings) {
