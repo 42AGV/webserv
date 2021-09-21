@@ -6,6 +6,7 @@
 #include <parser/Token.hpp>
 #include <parser/Preprocessor.hpp>
 #include <parser/Parser.hpp>
+#include <parser/ParserAPI.hpp>
 #include <Config.hpp>
 
 TEST_CASE("Testing the parser", "[parser]") {
@@ -80,7 +81,8 @@ TEST_CASE("Testing the parser", "[parser]") {
 		Preprocessor file(path);
 		Lexer lexed(file.GetFileBuffer());
 		std::list<Token> *tokens = lexed.GetTokens();
-		Config config;
+		Config sconf;
+		ParserAPI config(&sconf.GetServersSettings());
 		Parser parser(*tokens, &config);
 		parser.parse();
 		result << config;

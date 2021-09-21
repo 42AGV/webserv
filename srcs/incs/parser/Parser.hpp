@@ -8,14 +8,13 @@
 #include <vector>
 #include <stack>
 #include <parser/Lexer.hpp>
+#include <parser/ConfigSetters.hpp>
 #include <parser/ParsingEvents.hpp>
-#include <ServerConfig.hpp>
-#include <Config.hpp>
 
 
 class Parser: public Analyser {
  public:
-	Parser(const std::list<Token> &token, Config *config);
+	Parser(const std::list<Token> &token, ParserAPI *config);
 	void parse(void);
 
  private:
@@ -37,7 +36,7 @@ class Parser: public Analyser {
 		void AddServer(void) const;
 		Data(Parser * const parser, const std::string &error_msg);
 	private:
-		Config *config_;
+		ParserAPI *config_;
 	};
 	// ============= handlers ===================
 	class StHandler {
@@ -55,7 +54,7 @@ class Parser: public Analyser {
 	static t_parsing_state ParserMainLoop(Parser *parser);
 	std::stack<t_parsing_state> ctx_;
 	const std::list<Token> &tokens_;
-	Config *config_;
+	ParserAPI *config_;
 	const std::list<Token>::const_iterator itb_;
 	const std::list<Token>::const_iterator ite_;
 	std::list<Token>::const_iterator itc_;

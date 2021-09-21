@@ -14,19 +14,6 @@ class Config {
 	public:
 		bool	LoadFile(const std::string &pathname);
 		std::vector<ServerConfig>	&GetServersSettings();
-	CommonConfig GetLastCommonCfg(void);
-	void SetListenPort(uint16_t port, t_parsing_state ctx);
-	void SetListenAddress(uint32_t address, t_parsing_state ctx);
-	void AddServerName(const std::string &name, t_parsing_state ctx);
-	void SetRoot(const std::string &root, t_parsing_state ctx);
-	void AddIndex(const std::string &index, t_parsing_state ctx);
-	void AddAutoindex(bool autoindex, t_parsing_state ctx);
-	void SetClientMaxSz(uint32_t size, t_parsing_state ctx);
-	void AddServer(const ServerConfig &server, t_parsing_state ctx);
-	void AddLocation(const std::string &path,
-					 const CommonConfig &common, t_parsing_state ctx);
 };
-
-std::ostream &operator<<(std::ostream &o, Config &c);
 
 #endif  // SRCS_INCS_CONFIG_HPP_

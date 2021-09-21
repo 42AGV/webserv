@@ -1,6 +1,7 @@
 #ifndef SRCS_INCS_PARSER_PREPROCESSOR_HPP_
 #define SRCS_INCS_PARSER_PREPROCESSOR_HPP_
 
+# include <cerrno>
 # include <iostream>
 # include <fstream>
 # include <cstring>

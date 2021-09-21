@@ -6,7 +6,7 @@
 # define LINE data.current_.GetLine()
 #endif
 
-Parser::Parser(const std::list<Token> &token, Config *config) :
+Parser::Parser(const std::list<Token> &token, ParserAPI *config) :
 	tokens_(token),
 	config_(config),
 	itb_(tokens_.begin()),
@@ -35,9 +35,8 @@ void Parser::Data::SetListenAddress(uint32_t address) const {
 }
 
 void Parser::Data::AddLocation(const std::string &path) const {
-	CommonConfig conf = config_->GetLastCommonCfg();
 	// path should be in location ctor
-	config_->AddLocation(path, conf, ctx_->top());
+	config_->AddLocation(path, ctx_->top());
 }
 
 void Parser::Data::AddServerName(const std::string &name) const {
@@ -61,8 +60,7 @@ void Parser::Data::SetClientMaxSz(uint32_t size) const {
 }
 
 void Parser::Data::AddServer(void) const {
-	ServerConfig conf;
-	config_->AddServer(conf, ctx_->top());
+	config_->AddServer(ctx_->top());
 }
 
 t_parsing_state Parser::StHandler::InitHandler(const Data &data) {
