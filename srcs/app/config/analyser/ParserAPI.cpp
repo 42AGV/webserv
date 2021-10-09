@@ -1,4 +1,10 @@
 #include <parser/ConfigSetters.hpp>
+#ifdef DBG
+# define LINE __LINE__
+#else
+# define LINE data.GetLineNumber()
+#endif
+
 
 Parser::ParserAPI::ParserAPI(std::vector<ServerConfig> *server_settings) :
 	servers_settings_(server_settings) {
@@ -165,6 +171,140 @@ void Parser::ParserAPI::AddLocation(const std::string &path,
 									path + "'");
 	}
 }
+
+void Parser::StatelessSet::SetListenAddress(const std::string &svnaddr,
+											t_parsing_state ctx) const {
+	std::string errorThrow;
+	uint16_t port;
+	uint32_t address;
+	if (Parser::Helpers::ParseIpAddressPort(svnaddr, &errorThrow,
+											 &port, &address))
+		throw SyntaxError(errorThrow, line_);
+	config_->SetListenAddress(address, port, ctx);
+}
+
+void Parser::StatelessSet::AddLocation(const std::string &path,
+									   t_parsing_state ctx) const {
+	config_->AddLocation(path, ctx);
+}
+
+void Parser::StatelessSet::AddServerName(const std::string &name,
+										 t_parsing_state ctx) const {
+	config_->AddServerName(name, ctx);
+}
+
+void Parser::StatelessSet::SetRoot(const std::string &root,
+								   t_parsing_state ctx) const {
+	config_->SetRoot(root, ctx);
+}
+
+void Parser::StatelessSet::AddIndex(const std::string &index,
+									t_parsing_state ctx) const {
+	config_->AddIndex(index, ctx);
+}
+
+void Parser::StatelessSet::AddAutoindex(const std::string &autoindex,
+										t_parsing_state ctx) const {
+	config_->AddAutoindex(autoindex == "on", ctx);
+}
+
+void Parser::StatelessSet::SetClientMaxSz(uint32_t size,
+										  t_parsing_state ctx) const {
+	config_->SetClientMaxSz(size, ctx);
+}
+
+void Parser::StatelessSet::AddServer(t_parsing_state ctx) const {
+	config_->AddServer(ctx);
+}
+
+t_parsing_state Parser::StatelessSet::InitHandler(const StatefulSet &data) {
+	(void) data;
+	return Token::State::K_EXP_KW;
+}
+
+t_parsing_state Parser::StatelessSet::SemicHandler(const StatefulSet &data) {
+	(void) data;
+	return Token::State::K_EXP_KW;
+}
+
+t_parsing_state Parser::StatelessSet::SyntaxFailer(const StatefulSet &data) {
+	std::stringstream str;
+#ifdef DBG
+	str << "Raw data: \""<< data.GetRawData() << "\"\n";
+	str << "Event type: \""<<  data.GetEvent() << "\"\n";
+	str << "State type: \""<<  data.GetState() << "\"\n";
+#endif
+	str << data.GetErrorMessage();
+	throw SyntaxError(str.str(), LINE);
+}
+
+t_parsing_state Parser::StatelessSet::ExpKwHandlerClose
+													(const StatefulSet &data) {
+	(void)data;
+	parser_->PopContext();
+	return Token::State::K_EXIT;
+}
+
+t_parsing_state Parser::StatelessSet::ExpKwHandlerKw(const StatefulSet &data) {
+	if (data.GetState() < Token::State::K_SERVER
+	|| data.GetState() > Token::State::K_LIMIT_EXCEPT)
+		throw SyntaxError("Expecting keyword but found `" +
+		data.GetRawData() + "'", data.GetLineNumber());
+	if (!Parser::Helpers::isKwAllowedInCtx(data.GetState(), data.GetCtx()))
+		throw SyntaxError("Keyword `" + data.GetRawData() + "' "
+						  "not allowed in context `" +
+						  Token::State::GetParsingStateTypeStr(data.GetCtx())
+						  + "'", data.GetLineNumber());
+	return data.GetState();
+}
+
+t_parsing_state Parser::StatelessSet::AutoindexHandler
+													(const StatefulSet &data) {
+	if (data.GetRawData() != "on"
+	&& data.GetRawData() != "off")
+		throw SyntaxError("Expecting `on'/`off' but found `" +
+		data.GetRawData()  + "'", data.GetLineNumber());
+	AddAutoindex(data.GetRawData(), data.GetCtx());
+	return Token::State::K_EXP_SEMIC;
+}
+
+t_parsing_state Parser::StatelessSet::ServerNameHandler
+													(const StatefulSet &data) {
+	if (data.GetArgNumber() == 0
+		&& data.GetEvent() == Token::Type::T_SEMICOLON)
+		throw Analyser::SyntaxError("Invalid number of arguments in "
+									"`server_name' directive", LINE);
+	if (data.GetEvent() == Token::Type::T_SEMICOLON) {
+		parser_->ResetArgNumber();
+		return Token::State::K_EXP_KW;
+	}
+	AddServerName(data.GetRawData(), data.GetCtx());
+	parser_->IncrementArgNumber(data.GetRawData());
+	return Token::State::K_SERVER_NAME;
+}
+
+t_parsing_state Parser::StatelessSet::LocationHandler(const StatefulSet &data) {
+	AddLocation(data.GetRawData(), data.GetCtx());
+	parser_->PushContext(Token::State::K_LOCATION);
+	parser_->SkipEvent();
+	return parser_->ParserMainLoop();
+}
+
+t_parsing_state Parser::StatelessSet::ListenHandler(const StatefulSet &data) {
+	SetListenAddress(data.GetRawData(), data.GetCtx());
+	return Token::State::K_EXP_SEMIC;
+}
+
+t_parsing_state Parser::StatelessSet::ServerHandler(const StatefulSet &data) {
+	(void)data;
+	AddServer(data.GetCtx());
+	parser_->PushContext(Token::State::K_SERVER);
+	return parser_->ParserMainLoop();
+}
+
+Parser::StatelessSet::StatelessSet(Engine *parser, ParserAPI *config) :
+	config_(config),
+	parser_(parser) {}
 
 static std::string printCommon(const CommonConfig &common, uint8_t lvl) {
 	std::stringstream o;
