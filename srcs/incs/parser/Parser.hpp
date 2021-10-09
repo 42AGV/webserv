@@ -3,6 +3,7 @@
 
 #include <arpa/inet.h>
 #include <cerrno>
+#include <cstdlib>
 #include <iterator>
 #include <string>
 #include <list>
@@ -10,7 +11,9 @@
 #include <sstream>
 #include <vector>
 #include <stack>
-#include <parser/Lexer.hpp>
+#include <algorithm>
+#include <parser/Analyser.hpp>
+#include <parser/Token.hpp>
 
 struct ServerConfig;
 
