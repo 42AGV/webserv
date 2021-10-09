@@ -5,9 +5,8 @@ static std::vector<ServerConfig> parse(const std::string &path) {
 	Lexer lexed(file.GetFileBuffer());
 	std::list<Token> tokens = lexed.GetTokens();
 	std::vector<ServerConfig> servers_settings;
-	Parser::ParserAPI config(&servers_settings);
-	Parser::Engine parser(tokens, &config);
-	return config.GetServersSettings();
+	Parser::Engine parser(tokens, &servers_settings);
+	return servers_settings;
 }
 
 ConfigParserAPI::ConfigParserAPI(const std::string &path) :

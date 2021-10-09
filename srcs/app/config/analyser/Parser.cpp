@@ -6,8 +6,9 @@
 # define LINE data.GetLineNumber()
 #endif
 
-Parser::Engine::Engine(const std::list<Token> &token, ParserAPI *config) :
-	handlers_(this, config),
+Parser::Engine::Engine(const std::list<Token> &token,
+					   std::vector<ServerConfig> *servers_settings) :
+	handlers_(this, servers_settings),
 	ite_(token.end()),
 	itc_(token.begin()),
 	transitions_(TransitionFactory_()),

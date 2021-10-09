@@ -44,37 +44,12 @@ std::map<T, U>map, const std::string &key, const std::string &value) {
 	return o.str();
 }
 
-class ParserAPI {
- private:
-	std::vector<ServerConfig>	*servers_settings_;
-	bool canAddServer(uint32_t address, uint16_t port);
-	bool canAddLocation(const std::string &path);
- public:
-	explicit ParserAPI(std::vector<ServerConfig> *server_settings);
-	std::vector<ServerConfig>	&GetServersSettings(void);
-	void SetServersSettings(std::vector<ServerConfig> *server_settings);
-	virtual ~ParserAPI(void) {}
-	void SetListenAddress(uint32_t address, uint16_t port, t_parsing_state ctx);
-	void AddServerName(const std::string &name, t_parsing_state ctx);
-	void SetRoot(const std::string &root, t_parsing_state ctx);
-	void AddIndex(const std::string &index, t_parsing_state ctx);
-	void AddAutoindex(bool autoindex, t_parsing_state ctx);
-	void SetClientMaxSz(uint32_t size, t_parsing_state ctx);
-	void AddErrorPage(uint16_t code, const std::string &uri,
-								t_parsing_state ctx_);
-	void AddCgiAssign(const std::string &extension,
-								const std::string &binaryHandlerPath,
-								t_parsing_state ctx_);
-	void AddServer(t_parsing_state ctx);
-	void AddLocation(const std::string &path, t_parsing_state ctx);
-};
-
 class StatefulSet;
 class Engine;
 
 class StatelessSet : public Analyser {
  public:
-	StatelessSet(Engine *parser, ParserAPI *config);
+	StatelessSet(Engine *parser, std::vector<ServerConfig> *servers_settings);
 //  state handlers
 	t_parsing_state SyntaxFailer(const StatefulSet &data);
 	t_parsing_state ServerNameHandler(const StatefulSet &data);
@@ -89,15 +64,27 @@ class StatelessSet : public Analyser {
 // setters
  private:
 	void SetListenAddress(const std::string &svNameAddr,
-						  t_parsing_state ctx) const;
-	void AddServerName(const std::string &name, t_parsing_state ctx) const;
-	void SetRoot(const std::string &root, t_parsing_state ctx) const;
-	void AddIndex(const std::string &index, t_parsing_state ctx) const;
-	void AddAutoindex(const std::string &autoindex, t_parsing_state ctx) const;
-	void SetClientMaxSz(uint32_t size, t_parsing_state ctx) const;
-	void AddLocation(const std::string &name, t_parsing_state ctx) const;
-	void AddServer(t_parsing_state ctx) const;
-	ParserAPI *config_;
+						  t_parsing_state ctx, size_t line) const;
+	void AddServerName(const std::string &name,
+					   t_parsing_state ctx, size_t line) const;
+	void SetRoot(const std::string &root,
+				 t_parsing_state ctx, size_t line) const;
+	void AddIndex(const std::string &index,
+				  t_parsing_state ctx, size_t line) const;
+	void AddAutoindex(const std::string &autoindex,
+					  t_parsing_state ctx, size_t line) const;
+	void SetClientMaxSz(uint32_t size, t_parsing_state ctx, size_t line) const;
+	void AddErrorPage(uint16_t code, const std::string &uri,
+					  t_parsing_state ctx, size_t line) const;
+	void AddCgiAssign(const std::string &extension,
+					  const std::string &binaryHandlerPath,
+					  t_parsing_state ctx, size_t line) const;
+	void AddLocation(const std::string &name, t_parsing_state ctx,
+					 size_t line) const;
+	void AddServer(t_parsing_state ctx, size_t line) const;
+	bool canAddServer(uint32_t address, uint16_t port) const;
+	bool canAddLocation(const std::string &path) const;
+	std::vector<ServerConfig>	*servers_settings_;
 	Engine *parser_;
 };
 
@@ -121,7 +108,8 @@ class Helpers {
 
 class Engine: public Analyser {
  public:
-	Engine(const std::list<Token> &token, ParserAPI *config);
+	Engine(const std::list<Token> &token,
+		   std::vector<ServerConfig> *servers_settings_);
 	t_parsing_state ParserMainLoop(void);
 	void PushContext(const t_parsing_state &ctx);
 	void PopContext(void);

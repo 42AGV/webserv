@@ -5,16 +5,7 @@
 # define LINE data.GetLineNumber()
 #endif
 
-
-Parser::ParserAPI::ParserAPI(std::vector<ServerConfig> *server_settings) :
-	servers_settings_(server_settings) {
-}
-
-std::vector<ServerConfig>	&Parser::ParserAPI::GetServersSettings(void) {
-	return *servers_settings_;
-}
-
-bool Parser::ParserAPI::canAddServer(uint32_t address, uint16_t port) {
+bool Parser::StatelessSet::canAddServer(uint32_t address, uint16_t port) const {
 // std::vector<ServerConfig>::const_iterator it = servers_settings_->begin();
 	// for (; it != servers_settings_->end(); ++it) {
 	//  if (it->listen_address == address && it->listen_port == port) {
@@ -27,7 +18,7 @@ bool Parser::ParserAPI::canAddServer(uint32_t address, uint16_t port) {
 	return true;
 }
 
-bool Parser::ParserAPI::canAddLocation(const std::string &path) {
+bool Parser::StatelessSet::canAddLocation(const std::string &path) const {
 	// std::vector<Location>::const_iterator it = servers_settings_->
 	// back().locations.begin();
 	// for (; it != servers_settings_->back().locations.end(); ++it) {
@@ -39,107 +30,32 @@ bool Parser::ParserAPI::canAddLocation(const std::string &path) {
 	return true;
 }
 
-
-void Parser::ParserAPI::SetListenAddress(uint32_t address, uint16_t port,
-t_parsing_state ctx_) {
-	if (ctx_ != Token::State::K_SERVER)
-		throw std::invalid_argument("Invalid context for listen address");
-	if (canAddServer(address, port)) {
-		servers_settings_->back().listen_address = address;
-		servers_settings_->back().listen_port = port;
-	} else {
-		throw std::invalid_argument("duplicate default server for ");
-	}
-}
-
-void Parser::ParserAPI::AddServerName(const std::string &name,
-									  t_parsing_state ctx_) {
-	if (ctx_ != Token::State::K_SERVER)
-		throw std::invalid_argument("Invalid context for server name");
-	servers_settings_->back().server_name.push_back(name);
-}
-
-void Parser::ParserAPI::SetRoot(const std::string &root, t_parsing_state ctx_) {
-	if (ctx_ == Token::State::K_SERVER) {
-		servers_settings_->back().common.root = root;
-	} else {
-		if (ctx_ == Token::State::K_LOCATION)
-			servers_settings_->back().locations.back().common.root = root;
-		else
-			throw std::invalid_argument("Invalid context for root");
-	}
-}
-
-void Parser::ParserAPI::AddIndex(const std::string &index,
-								 t_parsing_state ctx_) {
-	if (ctx_ == Token::State::K_SERVER) {
-		servers_settings_->back().common.index = index;
-	} else {
-		if (ctx_ == Token::State::K_LOCATION)
-			servers_settings_->back().locations.back().common.index = index;
-		else
-			throw std::invalid_argument("Invalid context for index");
-	}
-}
-
-void Parser::ParserAPI::AddAutoindex(bool autoindex, t_parsing_state ctx_) {
-	if (ctx_ == Token::State::K_SERVER) {
-		servers_settings_->back().common.autoindex = autoindex;
-	} else {
-		if (ctx_ == Token::State::K_LOCATION)
-			servers_settings_->back().locations.back().common.autoindex =
-				autoindex;
-		else
-			throw std::invalid_argument("Invalid context for autoindex");
-	}
-}
-
-void Parser::ParserAPI::SetClientMaxSz(uint32_t size, t_parsing_state ctx_) {
-	if (ctx_ == Token::State::K_SERVER) {
-		servers_settings_->back().common.client_max_body_size = size;
-	} else {
-		if (ctx_ == Token::State::K_LOCATION)
-			servers_settings_->back().
-				locations.back().common.client_max_body_size = size;
-		else
-			throw std::invalid_argument(
-				"Invalid context for client_max_body_size");
-	}
-}
-
-void Parser::ParserAPI::AddErrorPage(uint16_t code, const std::string &uri,
-							t_parsing_state ctx_) {
-	if (ctx_ == Token::State::K_SERVER) {
+void Parser::StatelessSet::AddErrorPage(uint16_t code, const std::string &uri,
+							t_parsing_state ctx, size_t line) const {
+	if (ctx == Token::State::K_SERVER) {
 		servers_settings_->back().common.error_pages[code] = uri;
 	} else {
-		if (ctx_ == Token::State::K_LOCATION)
+		if (ctx == Token::State::K_LOCATION)
 			servers_settings_->back().locations.back().common.
 				error_pages[code] = uri;
 		else
-			throw std::invalid_argument("Invalid context for autoindex");
+			throw SyntaxError("Invalid context for autoindex", line);
 	}
 }
 
-void Parser::ParserAPI::AddCgiAssign(const std::string &extension,
+void Parser::StatelessSet::AddCgiAssign(const std::string &extension,
 							 const std::string &binaryHandlerPath,
-							 t_parsing_state ctx_) {
-	if (ctx_ == Token::State::K_SERVER) {
+							 t_parsing_state ctx, size_t line) const {
+	if (ctx == Token::State::K_SERVER) {
 		servers_settings_->back().common.cgi_assign[extension] =
 			binaryHandlerPath;
 	} else {
-		if (ctx_ == Token::State::K_LOCATION)
+		if (ctx == Token::State::K_LOCATION)
 			servers_settings_->back().locations.back().common.
 				cgi_assign[extension] = binaryHandlerPath;
 		else
-			throw std::invalid_argument("Invalid context for autoindex");
+			throw SyntaxError("Invalid context for autoindex", line);
 	}
-}
-
-void Parser::ParserAPI::AddServer(t_parsing_state ctx_) {
-	if (ctx_ != Token::State::K_INIT)
-		throw std::invalid_argument("Invalid context for server");
-	ServerConfig server;
-	servers_settings_->push_back(server);
 }
 
 static CommonConfig GetLastCommonCfg(std::vector<ServerConfig>
@@ -158,63 +74,100 @@ static CommonConfig GetLastCommonCfg(std::vector<ServerConfig>
 	return config;
 }
 
-void Parser::ParserAPI::AddLocation(const std::string &path,
-									t_parsing_state ctx_) {
-	if (ctx_ != Token::State::K_SERVER)
-		throw std::invalid_argument("Invalid context for location");
+void Parser::StatelessSet::SetListenAddress(const std::string &svnaddr,
+											t_parsing_state ctx, size_t line) const {
+	std::string errorThrow;
+	uint16_t port;
+	uint32_t address;
+	if (ctx != Token::State::K_SERVER)
+		throw SyntaxError("Invalid context for listen address", line);
+	if (Parser::Helpers::ParseIpAddressPort(svnaddr, &errorThrow,
+											 &port, &address))
+		throw SyntaxError(errorThrow, line_);
+	if (canAddServer(address, port)) {
+		servers_settings_->back().listen_address = address;
+		servers_settings_->back().listen_port = port;
+	} else {
+		throw SyntaxError("duplicate default server for ", line);
+	}
+}
+
+void Parser::StatelessSet::AddLocation(const std::string &path,
+									   t_parsing_state ctx, size_t line) const {
+	if (ctx != Token::State::K_SERVER)
+		throw SyntaxError("Invalid context for location", line);
 	if (canAddLocation(path)) {
 		CommonConfig common = GetLastCommonCfg(servers_settings_);
 		Location location(path, common);
 		servers_settings_->back().locations.push_back(location);
 	} else {
-		throw std::invalid_argument("duplicate location for path '" +
-									path + "'");
+		throw SyntaxError("duplicate location for path `" + path + "'", line);
 	}
 }
 
-void Parser::StatelessSet::SetListenAddress(const std::string &svnaddr,
-											t_parsing_state ctx) const {
-	std::string errorThrow;
-	uint16_t port;
-	uint32_t address;
-	if (Parser::Helpers::ParseIpAddressPort(svnaddr, &errorThrow,
-											 &port, &address))
-		throw SyntaxError(errorThrow, line_);
-	config_->SetListenAddress(address, port, ctx);
-}
-
-void Parser::StatelessSet::AddLocation(const std::string &path,
-									   t_parsing_state ctx) const {
-	config_->AddLocation(path, ctx);
-}
-
 void Parser::StatelessSet::AddServerName(const std::string &name,
-										 t_parsing_state ctx) const {
-	config_->AddServerName(name, ctx);
+										 t_parsing_state ctx, size_t line) const {
+	if (ctx != Token::State::K_SERVER)
+		throw SyntaxError("Invalid context for server name", line);
+	servers_settings_->back().server_name.push_back(name);
 }
 
 void Parser::StatelessSet::SetRoot(const std::string &root,
-								   t_parsing_state ctx) const {
-	config_->SetRoot(root, ctx);
+								   t_parsing_state ctx, size_t line) const {
+	if (ctx == Token::State::K_SERVER) {
+		servers_settings_->back().common.root = root;
+	} else {
+		if (ctx == Token::State::K_LOCATION)
+			servers_settings_->back().locations.back().common.root = root;
+		else
+			throw SyntaxError("Invalid context for root", line);
+	}
 }
 
 void Parser::StatelessSet::AddIndex(const std::string &index,
-									t_parsing_state ctx) const {
-	config_->AddIndex(index, ctx);
+									t_parsing_state ctx, size_t line) const {
+	if (ctx == Token::State::K_SERVER) {
+		servers_settings_->back().common.index = index;
+	} else {
+		if (ctx == Token::State::K_LOCATION)
+			servers_settings_->back().locations.back().common.index = index;
+		else
+			throw SyntaxError("Invalid context for index", line);
+	}
 }
 
 void Parser::StatelessSet::AddAutoindex(const std::string &autoindex,
-										t_parsing_state ctx) const {
-	config_->AddAutoindex(autoindex == "on", ctx);
+										t_parsing_state ctx, size_t line) const {
+	if (ctx == Token::State::K_SERVER) {
+		servers_settings_->back().common.autoindex = (autoindex == "on");
+	} else {
+		if (ctx == Token::State::K_LOCATION)
+			servers_settings_->back().locations.back().common.autoindex =
+				(autoindex == "on");
+		else
+			throw SyntaxError("Invalid context for autoindex", line);
+	}
 }
 
 void Parser::StatelessSet::SetClientMaxSz(uint32_t size,
-										  t_parsing_state ctx) const {
-	config_->SetClientMaxSz(size, ctx);
+										  t_parsing_state ctx, size_t line) const {
+	if (ctx == Token::State::K_SERVER) {
+		servers_settings_->back().common.client_max_body_size = size;
+	} else {
+		if (ctx == Token::State::K_LOCATION)
+			servers_settings_->back().
+				locations.back().common.client_max_body_size = size;
+		else
+			throw SyntaxError(
+				"Invalid context for client_max_body_size", line);
+	}
 }
 
-void Parser::StatelessSet::AddServer(t_parsing_state ctx) const {
-	config_->AddServer(ctx);
+void Parser::StatelessSet::AddServer(t_parsing_state ctx, size_t line) const {
+	if (ctx != Token::State::K_INIT)
+		throw SyntaxError("Invalid context for server", line);
+	ServerConfig server;
+	servers_settings_->push_back(server);
 }
 
 t_parsing_state Parser::StatelessSet::InitHandler(const StatefulSet &data) {
@@ -264,7 +217,7 @@ t_parsing_state Parser::StatelessSet::AutoindexHandler
 	&& data.GetRawData() != "off")
 		throw SyntaxError("Expecting `on'/`off' but found `" +
 		data.GetRawData()  + "'", data.GetLineNumber());
-	AddAutoindex(data.GetRawData(), data.GetCtx());
+	AddAutoindex(data.GetRawData(), data.GetCtx(), data.GetLineNumber());
 	return Token::State::K_EXP_SEMIC;
 }
 
@@ -278,32 +231,33 @@ t_parsing_state Parser::StatelessSet::ServerNameHandler
 		parser_->ResetArgNumber();
 		return Token::State::K_EXP_KW;
 	}
-	AddServerName(data.GetRawData(), data.GetCtx());
+	AddServerName(data.GetRawData(), data.GetCtx(), data.GetLineNumber());
 	parser_->IncrementArgNumber(data.GetRawData());
 	return Token::State::K_SERVER_NAME;
 }
 
 t_parsing_state Parser::StatelessSet::LocationHandler(const StatefulSet &data) {
-	AddLocation(data.GetRawData(), data.GetCtx());
+	AddLocation(data.GetRawData(), data.GetCtx(), data.GetLineNumber());
 	parser_->PushContext(Token::State::K_LOCATION);
 	parser_->SkipEvent();
 	return parser_->ParserMainLoop();
 }
 
 t_parsing_state Parser::StatelessSet::ListenHandler(const StatefulSet &data) {
-	SetListenAddress(data.GetRawData(), data.GetCtx());
+	SetListenAddress(data.GetRawData(), data.GetCtx(), data.GetLineNumber());
 	return Token::State::K_EXP_SEMIC;
 }
 
 t_parsing_state Parser::StatelessSet::ServerHandler(const StatefulSet &data) {
 	(void)data;
-	AddServer(data.GetCtx());
+	AddServer(data.GetCtx(), data.GetLineNumber());
 	parser_->PushContext(Token::State::K_SERVER);
 	return parser_->ParserMainLoop();
 }
 
-Parser::StatelessSet::StatelessSet(Engine *parser, ParserAPI *config) :
-	config_(config),
+Parser::StatelessSet::StatelessSet(Engine *parser,
+						std::vector<ServerConfig> *servers_settings) :
+	servers_settings_(servers_settings),
 	parser_(parser) {}
 
 static std::string printCommon(const CommonConfig &common, uint8_t lvl) {
