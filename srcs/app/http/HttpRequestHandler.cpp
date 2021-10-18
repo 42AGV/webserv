@@ -9,6 +9,7 @@
 #include <exception>
 #include <fstream>
 #include <sstream>
+#include <cstring>
 #include <FormFile.hpp>
 #include <HttpStatusCodes.hpp>
 #include <StringUtils.hpp>
@@ -314,6 +315,9 @@ void	HttpRequestHandler::UploadFile_(const HttpRequest &request) {
 	}
 }
 
+#define SIDE_IN 1
+#define SIDE_OUT 0
+
 void	HttpRequestHandler::DoPost_(const HttpRequest &request) {
 	const std::string request_path = request.GetPath();
 	const std::string full_path =
@@ -324,7 +328,32 @@ void	HttpRequestHandler::DoPost_(const HttpRequest &request) {
 		} else if (!IsExecutable_(full_path)) {
 			RequestError_(403);
 		} else {
-			// TODO(any) Implement CGI
+			int pipes[2];
+			pid_t pid;
+			int ret;
+			if (pipe(pipes)) {
+				throw std::runtime_error(std::strerror(errno));
+			}
+			if ((pid = fork()) < 0) {
+				throw std::runtime_error(std::strerror(errno));
+			}
+			for(;;) {
+				setenv("", "", 1);
+			}
+			if (pid == 0) {
+				if (dup2(pipes[SIDE_IN], STDOUT_FILENO) < 0) {
+					throw std::runtime_error(std::strerror(errno));
+				}
+				const char *exec =
+					request_location_->common.cgi_assign.end()->second.c_str();
+				char *const argv[2] = {const_cast<char *const>(
+						request_location_->common.cgi_assign.end()->
+						second.c_str()),
+					NULL};
+				if ((ret = execve(exec, argv, environ)) < 0) {
+					throw std::runtime_error(std::strerror(errno));
+				}
+			}
 			RequestError_(501);
 		}
 	} else {
