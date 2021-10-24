@@ -14,10 +14,10 @@
 #include <StringUtils.hpp>
 
 HttpRequestHandler::HttpRequestHandler(const ServerConfig &server_config,
-										const HttpRequest *request)
-	: server_config_(server_config), keep_alive_(true),
-		request_location_(NULL) {
-	HandleRequest_(request);
+										const std::string &raw_request)
+	: server_config_(server_config), raw_request_(raw_request),
+		keep_alive_(true), request_location_(NULL) {
+	HandleRequest_();
 }
 
 HttpRequestHandler::~HttpRequestHandler() {
@@ -55,12 +55,16 @@ void		HttpRequestHandler::DoRedirection_() {
 	raw_response_ = response.CreateResponseString();
 }
 
-void		HttpRequestHandler::HandleRequest_(const HttpRequest *request) {
+void		HttpRequestHandler::HandleRequest_() {
 	if (!server_config_.common.return_url.empty()) {
 		DoRedirection_();
 		return;
 	}
-	if (request == NULL) {
+	HttpRequest	*request = NULL;
+	try {
+		request = new HttpRequest(raw_request_);
+	}
+	catch (const std::exception &e) {
 		RequestError_(400);
 		return;
 	}
@@ -71,6 +75,7 @@ void		HttpRequestHandler::HandleRequest_(const HttpRequest *request) {
 	} else if (HasAcceptedFormat_(*request)) {
 		HandleMethod_(*request);
 	}
+	delete request;
 }
 
 void	HttpRequestHandler::HandleMethod_(const HttpRequest &request) {
