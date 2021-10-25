@@ -324,7 +324,6 @@ void	HttpRequestHandler::DoPost_(const HttpRequest &request) {
 		} else {
 			HttpResponse response(200);
 			AddCommonHeaders_(&response);
-			raw_response_ = response.CreateResponseString();
 			CGI engine(request, *request_location_, PathExtension_(full_path),
 				&response);
 			engine.ExecuteCGI();
