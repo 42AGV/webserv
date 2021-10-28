@@ -64,7 +64,8 @@ void		HttpRequestHandler::HandleRequest_(const HttpRequest *request) {
 		DoRedirection_();
 		return;
 	}
-	if (request == NULL || request->GetState() != RequestState::kComplete) {
+	if (request == NULL || (request->GetState() != RequestState::kComplete
+				&& request->GetState() != RequestState::kPartial)) {
 		RequestError_(400);
 		return;
 	}
