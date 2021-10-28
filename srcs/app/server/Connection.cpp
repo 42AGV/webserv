@@ -1,9 +1,11 @@
 #include <Connection.hpp>
+#include <cstring>
 #include <IRequestHandler.hpp>
 #include <HttpRequestHandler.hpp>
 
 Connection::Connection(const ServerConfig &server_config, int socket)
-	: server_config_(server_config), socket_(socket), keep_alive_(true) {
+	: server_config_(server_config), socket_(socket), keep_alive_(true),
+	  is_cgi_(false) {
 	request_ = new HttpRequest();
 }
 
@@ -13,8 +15,28 @@ Connection::~Connection() {
 
 ReadRequestStatus::Type	Connection::ReadRequest() {
 	char	buffer[4096];
+	std::string status_line = "";
+	char c;
+	int nbytes;
 
-	int nbytes = recv(socket_, buffer, sizeof(buffer), 0);
+	if (!raw_request_.empty() && !is_cgi_) {
+		nbytes = recv(socket_, buffer, sizeof(buffer), 0);
+	} else {
+		while (recv(socket_, &c, 1, 0) == 1) {
+			status_line += c;
+			if (c == '\r')
+				break;
+		}
+		if (recv(socket_, &c, 1, 0) == 1) {
+			status_line += c;
+		}
+		if (status_line.rfind("\r\n") == status_line.size() - 2) {
+			std::memcpy(buffer, status_line.c_str(), status_line.size());
+			nbytes = status_line.size();
+		} else {
+			nbytes = -1;
+		}
+	}
 	if (nbytes <= 0) {
 		return ReadRequestStatus::kFail;
 	}

@@ -40,7 +40,7 @@ void	WebServer::Run() {
 				--ready_connections;
 				if (IsListeningSocket_(sd)) {
 					AcceptNewConnection_(sd);
-				} else {
+				} else { // when do we unset listening socket to be here?
 					ReadRequest_(sd);
 				}
 			} else if (FD_ISSET(sd, &tmp_write_set_)) {
@@ -133,7 +133,7 @@ void	WebServer::ReadRequest_(int sd) {
 
 	ReadRequestStatus::Type status = server_ptr->ReadRequest(sd);
 	if (status == ReadRequestStatus::kComplete) {
-		FD_SET(sd, &write_set_);
+		FD_SET(sd, &write_set_);  // por que add read request sd to write set?
 	} else if (status == ReadRequestStatus::kFail) {
 		server_ptr->RemoveConnection(sd);
 		FD_CLR(sd, &all_set_);
