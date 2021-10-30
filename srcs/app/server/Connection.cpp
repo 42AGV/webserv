@@ -3,17 +3,17 @@
 #include <IRequestHandler.hpp>
 #include <HttpRequestHandler.hpp>
 
-Connection::Connection(const ServerConfig &server_config, int socket)
-	: server_config_(server_config), socket_(socket), keep_alive_(true),
-	  is_cgi_(false) {
-	request_ = new HttpRequest();
-}
+Connection::Connection(int socket, IRequestHandler *request_handler,
+															IRequest *request)
+	: socket_(socket), request_handler_(request_handler), request_(request),
+	keep_alive_(true), is_cgi_(false) {}
 
 Connection::~Connection() {
+	delete request_handler_;
 	delete request_;
 }
 
-ReadRequestStatus::Type	Connection::ReadRequest() {
+ReceiveRequestStatus::Type	Connection::ReceiveRequest() {
 	char	buffer[4096];
 	std::string status_line = "";
 	char c;
@@ -38,7 +38,7 @@ ReadRequestStatus::Type	Connection::ReadRequest() {
 		}
 	}
 	if (nbytes <= 0) {
-		return ReadRequestStatus::kFail;
+		return ReceiveRequestStatus::kFail;
 	}
 	raw_request_.append(&buffer[0], &buffer[nbytes]);
 	if (raw_response_.empty() &&
@@ -48,17 +48,14 @@ ReadRequestStatus::Type	Connection::ReadRequest() {
 	}
 	RequestState::State request_state = request_->GetState();
 	if (request_state == RequestState::kPartial)
-		return ReadRequestStatus::kSuccess;
-	return ReadRequestStatus::kComplete;
+		return ReceiveRequestStatus::kSuccess;
+	return ReceiveRequestStatus::kComplete;
 }
 
 SendResponseStatus::Type	Connection::SendResponse() {
 	if (raw_response_.empty()) {
-		IRequestHandler *handler =
-							new HttpRequestHandler(server_config_, request_);
-		raw_response_ = handler->GetRawResponse();
-		keep_alive_ = handler->GetKeepAlive();
-		delete handler;
+		raw_response_ = request_handler_->BuildResponse(request_);
+		keep_alive_ = request_handler_->GetKeepAlive();
 		request_->Reset();
 	}
 	int nbytes = send(socket_, raw_response_.c_str(), raw_response_.size(), 0);
