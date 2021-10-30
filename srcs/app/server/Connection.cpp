@@ -69,6 +69,7 @@ ReceiveRequestStatus::Type	Connection::ReceiveRequest() {
 	raw_request_.append(&buffer[0], &buffer[nbytes]);
 	if (raw_response_.empty() &&
 							request_->GetState() == RequestState::kPartial) {
+		request_->Reset();
 		std::size_t offset = request_->ParseRawString(raw_request_);
 		raw_request_.erase(0, offset);
 	}

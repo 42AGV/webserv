@@ -145,3 +145,4 @@ nocommit/*
 
 ### ides
 .vscode/
+.idea/*
