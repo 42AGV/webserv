@@ -175,6 +175,10 @@ void	HttpRequestHandler::ListDirectory_(const std::string &request_path) {
 	raw_response_ = response.CreateResponseString();
 }
 
+const ServerConfig		&HttpRequestHandler::GetServerConfig() {
+	return server_config_;
+}
+
 bool	HttpRequestHandler::HasAcceptedFormat_(const HttpRequest &request) {
 	if (request_location_->HasLocation() &&
 									!request_location_->limit_except->empty()) {
@@ -261,7 +265,7 @@ void	HttpRequestHandler::DoGet_(const HttpRequest &request) {
 }
 
 bool	HttpRequestHandler::IsCGI_(const std::string &full_path) const {
-	const std::string extension = PathExtension_(full_path);
+	const std::string extension = PathExtension(full_path);
 	return request_location_->common.cgi_assign.count(extension) > 0;
 }
 
@@ -305,7 +309,7 @@ void	HttpRequestHandler::ExecuteCGI_(const HttpRequest &request,
 	try {
 		HttpResponse response(200);
 		AddCommonHeaders_(&response);
-		CGI engine(request, *request_location_, PathExtension_(full_path),
+		CGI engine(request, *request_location_, PathExtension(full_path),
 			&response);
 		engine.ExecuteCGI();
 		if (engine.GetExecReturn() != EXIT_SUCCESS) {
@@ -371,26 +375,8 @@ bool	HttpRequestHandler::IsRegularFile_(const std::string &path) const {
 	return false;
 }
 
-std::string	HttpRequestHandler::PathExtension_(const std::string &path) const {
-	const std::size_t extension_position = path.rfind(".");
-	if (extension_position == std::string::npos || extension_position < 2) {
-		return "";
-	}
-	const std::size_t	last_dir_position = path.rfind("/");
-	if (last_dir_position == std::string::npos) {
-		return path.substr(extension_position + 1);
-	}
-	if (last_dir_position < extension_position - 1) {
-		const std::string last_path_part = path.substr(last_dir_position + 1);
-		if (last_path_part != "." && last_path_part != "..") {
-			return path.substr(extension_position + 1);
-		}
-	}
-	return "";
-}
-
 std::string	HttpRequestHandler::GetMimeType_(const std::string &path) const {
-	return MimeTypes::GetMimeType(PathExtension_(path));
+	return MimeTypes::GetMimeType(PathExtension(path));
 }
 
 std::string	HttpRequestHandler::CurrentDate_() const {

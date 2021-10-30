@@ -10,6 +10,7 @@
 #include <IRequest.hpp>
 #include <ServerConfig.hpp>
 #include <IRequestHandler.hpp>
+#include "RequestLocation.hpp"
 
 class Connection {
 	public:
@@ -30,6 +31,8 @@ class Connection {
 		bool				is_cgi_;
 		std::string			raw_request_;
 		std::string			raw_response_;
+		RequestLocation		*location_;
+		ServerConfig		*server_config_;
 };
 
 #endif  // SRCS_INCS_CONNECTION_HPP_
