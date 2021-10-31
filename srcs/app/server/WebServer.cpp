@@ -113,6 +113,9 @@ Server	*WebServer::FindListeningServer_(int sd) {
 	return server_it->second;
 }
 
+// Accept the new connection
+// Add it to the server connections
+// And to the all_set_
 void	WebServer::AcceptNewConnection_(int sd) {
 	Server *server = FindListeningServer_(sd);
 
@@ -155,6 +158,11 @@ void	WebServer::HandleReadSocket_(int sd) {
 			ReceiveRequestStatus::Type status = server->ReceiveRequest(sd);
 			if (status == ReceiveRequestStatus::kComplete) {
 				FD_SET(sd, &write_set_);
+			} else if (status == ReceiveRequestStatus::kIsCGI)  {
+				FD_CLR(sd, &all_set_);
+				FD_SET(sd, &write_set_);
+				// FD_CLR(sd, &write_set_);
+				// SetMaxSocket_(sd);
 			} else if (status == ReceiveRequestStatus::kFail) {
 				server->RemoveConnection(sd);
 				FD_CLR(sd, &all_set_);

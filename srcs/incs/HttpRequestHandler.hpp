@@ -22,7 +22,7 @@
 #include <MimeTypes.hpp>
 #include <RequestLocation.hpp>
 #include <ServerConfig.hpp>
-#include <StringUtils.hpp>
+#include <Utils.hpp>
 #include <CGI.hpp>
 
 
@@ -32,8 +32,11 @@ class HttpRequestHandler : public IRequestHandler {
 		~HttpRequestHandler();
 		std::string			BuildResponse(IRequest *request);
 		bool				GetKeepAlive() const;
+		const ServerConfig		&GetServerConfig();
+		void				AddCommonHeaders_(HttpResponse *response);
 
-	private:
+
+ private:
 		HttpRequestHandler();
 		HttpRequestHandler(const HttpRequestHandler &);
 		HttpRequestHandler&	operator=(const HttpRequestHandler&);
@@ -47,7 +50,6 @@ class HttpRequestHandler : public IRequestHandler {
 		void				DoRedirection_();
 		void				HandleRequest_(const HttpRequest *request);
 		void				HandleMethod_(const HttpRequest &request);
-		void				AddCommonHeaders_(HttpResponse *response);
 		std::string			DefaultResponseBody_(
 										const std::size_t status_code) const;
 		void				DefaultStatusResponse_(
@@ -74,7 +76,6 @@ class HttpRequestHandler : public IRequestHandler {
 		bool				IsValidPath_(const std::string &path) const;
 		bool				IsDirectory_(const std::string &path) const;
 		bool				IsRegularFile_(const std::string &path) const;
-		std::string			PathExtension_(const std::string &path) const;
 		std::string			GetMimeType_(const std::string &file_path) const;
 		std::string			CurrentDate_() const;
 };

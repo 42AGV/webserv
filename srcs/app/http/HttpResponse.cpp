@@ -2,7 +2,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <HttpStatusCodes.hpp>
-#include <StringUtils.hpp>
+#include <Utils.hpp>
 
 const char HttpResponse::kCRLF_[] = "\r\n";
 
@@ -85,6 +85,20 @@ std::string	HttpResponse::CreateResponseString() const {
 	}
 	ss << kCRLF_;
 	ss << body_;
+	return ss.str();
+}
+
+std::string	HttpResponse::CreateHeadersString() const {
+	std::stringstream	ss;
+
+	ss << http_version_ << ' ' << status_code_ << ' ' << reason_phrase_ <<
+	   kCRLF_;
+	HeadersMap::const_iterator	it = headers_.begin();
+	HeadersMap::const_iterator	ite = headers_.end();
+	while (it != ite) {
+		ss << it->first << ": " << it->second << kCRLF_;
+		++it;
+	}
 	return ss.str();
 }
 

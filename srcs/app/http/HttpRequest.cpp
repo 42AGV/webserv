@@ -14,6 +14,14 @@ HttpRequest::HttpRequest()
 	parse_state_(kParseRequestLine), state_(RequestState::kPartial) {
 }
 
+HttpRequest::HttpRequest(const HttpRequest &rhs) :
+method_(rhs.method_), request_target_(rhs.request_target_),
+path_(rhs.path_), queries_(rhs.queries_), http_version_(rhs.http_version_),
+headers_(rhs.headers_), host_(rhs.host_), port_(rhs.port_),
+body_(rhs.body_), content_length_(rhs.content_length_),
+offset_(rhs.offset_), parse_state_(rhs.parse_state_), state_(rhs.state_) {
+}
+
 HttpRequest::~HttpRequest() {}
 
 std::size_t

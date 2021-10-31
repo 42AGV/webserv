@@ -5,7 +5,7 @@
 #include <CommonDefinitions.hpp>
 #include <IRequest.hpp>
 #include <RequestState.hpp>
-#include <StringUtils.hpp>
+#include <Utils.hpp>
 
 class HttpRequest : public IRequest {
 	private:
@@ -44,6 +44,7 @@ class HttpRequest : public IRequest {
 
 	public:
 					HttpRequest();
+					HttpRequest(const HttpRequest &rhs);
 					~HttpRequest();
 		std::size_t	ParseRawString(const std::string &raw_request);
 		std::string	GetMethod() const;
@@ -64,7 +65,6 @@ class HttpRequest : public IRequest {
 		RequestState::State	GetState() const;
 
 	private:
-		HttpRequest(const HttpRequest &);
 		HttpRequest &	operator=(const HttpRequest &);
 
 		void		ParseRequestLine_(const std::string &raw_request);

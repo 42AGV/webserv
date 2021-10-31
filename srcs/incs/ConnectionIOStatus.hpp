@@ -5,7 +5,8 @@ struct ReceiveRequestStatus {
 	enum Type {
 		kFail,
 		kSuccess,
-		kComplete
+		kComplete,
+		kIsCGI,
 	};
 };
 
