@@ -146,3 +146,7 @@ nocommit/*
 ### ides
 .vscode/
 .idea/*
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+srcs/app/test/integration/__pycache__/
