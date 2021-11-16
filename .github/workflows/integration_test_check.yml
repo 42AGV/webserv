@@ -7,7 +7,9 @@ on:
     types: [assigned, opened, synchronize, reopened]
 
 jobs:
-  build:
+  call-build-workflow:
+    uses: 42AGV/webserv/.github/workflows/compile_check_gpp.yml@${{ github.ref }}
+  integration_tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

@@ -1,13 +1,14 @@
-name: Compile C++ code on macOS and Linux with clang++ and g++
+name: Compile C++ code on macOS and Linux with clang++
 
 on:
+  workflow_call:
   push:
     branches: [$default-branch]
   pull_request:
     types: [assigned, opened, synchronize, reopened]
 
 jobs:
-  build:
+  build-clangpp:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -17,7 +18,4 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Compile with clang++ and g++
-        run: |
-            CXX=clang++ make -j12
-            make fclean
-            CXX=g++ make -j12
+        run: CXX=clang++ make -j12

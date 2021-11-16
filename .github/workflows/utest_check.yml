@@ -8,7 +8,9 @@ on:
         types: [assigned, opened, synchronize, reopened]
 
 jobs:
-    build:
+    call-build-workflow:
+        uses: 42AGV/webserv/.github/workflows/compile_check_gpp.yml@${{ github.ref }}
+    unit_test:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2

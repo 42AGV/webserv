@@ -1,0 +1,21 @@
+name: Compile C++ code on macOS and Linux with g++
+
+on:
+  workflow_call:
+  push:
+    branches: [$default-branch]
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+
+jobs:
+  build-gpp:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-10.15, ubuntu-18.04]
+    steps:
+      - name: Check out Github repository
+        uses: actions/checkout@v2
+
+      - name: Compile with g++
+        run: CXX=g++ make -j12
