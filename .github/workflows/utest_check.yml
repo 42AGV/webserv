@@ -9,7 +9,7 @@ on:
 
 jobs:
     call-build-workflow:
-        uses: 42AGV/webserv/.github/workflows/compile_check_gpp.yml@${{ github.ref }}
+        uses: 42AGV/webserv/.github/workflows/compile_check_gpp.yml@${{env.GITHUB_SHA_SHORT}}
     unit_test:
         runs-on: ubuntu-latest
         steps:
