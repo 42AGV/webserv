@@ -1,32 +1,25 @@
 #include <CGI.hpp>
 
 std::string CGI::GetExecutable_(const std::string &extension) {
-	if (request_location_->common.cgi_assign.count(extension) > 0) {
-			return request_location_->
-				common.cgi_assign.find(extension)->second;
-		}
-	throw std::invalid_argument("There is no CGI handler for the "
-									"requested file");
+	if (requestConfig_->HasCGI(extension)) {
+		return requestConfig_->GetCGIBin(extension);
+	}
+	throw std::invalid_argument(
+		"There is no CGI handler for the requested file");
 }
 
-CGI::CGI(const HttpRequest &request, const RequestLocation &location,
-		 const std::string &extension,  // we need the GetExtension
+CGI::CGI(const HttpRequest &request, const RequestConfig &location,
+		 const std::string &extension  // we need the GetExtension
 									   // function somewhere common
-		 HttpResponse *response
 	) :
-	execRet_(0),
 	request_(request),
-	request_location_(&location),
-	reqBody_(request.GetBody()),
-	arg_path_(request_location_->common.root + request.GetPath()),
+	requestConfig_(&location),
+	arg_path_(requestConfig_->GetRoot() + request.GetDecodedPath()),
 	exec_path_(GetExecutable_(extension)),
-	response_(response),
 	CGIenvMap_(MakeEnv_()),
 	CGIenv_(MakeCEnv_()) {
-	pipes_[0] = -1;
-	pipes_[1] = -1;
-	pipes2_[0] = -1;
-	pipes2_[1] = -1;
+	fds_[0] = -1;
+	fds_[1] = -1;
 }
 
 CGI::~CGI(void) {
@@ -34,26 +27,26 @@ CGI::~CGI(void) {
 		delete [] CGIenv_[i];
 	}
 	delete [] CGIenv_;
-	CloseAssign_(&pipes_[0]);
-	CloseAssign_(&pipes_[1]);
-	CloseAssign_(&pipes2_[0]);
-	CloseAssign_(&pipes2_[1]);
+	CloseAssign_(&fds_[0]);
+	CloseAssign_(&fds_[1]);
 }
 
 std::map<std::string, std::string> CGI::MakeEnv_(void) {
-	// std::map<std::string, std::string>	headers_ = request_.GetHeaders();
 	std::map<std::string, std::string>	env_;
 
 	env_.insert(std::make_pair("REDIRECT_STATUS", "200"));
 	env_.insert(std::make_pair("GATEWAY_INTERFACE", "CGI/1.1"));
 	env_.insert(std::make_pair("REQUEST_METHOD", request_.GetMethod()));
+	env_.insert(std::make_pair("CONTENT_LENGTH",
+									request_.GetHeaderValue("Content-Length")));
 	env_.insert(std::make_pair("CONTENT_TYPE",
-									 request_.GetHeaderValue("Content-Type")));
+									request_.GetHeaderValue("Content-Type")));
 	env_.insert(std::make_pair("SERVER_PROTOCOL", "HTTP/1.1"));
 	env_.insert(std::make_pair("SERVER_SOFTWARE", "webserv/1.0"));
 	env_.insert(std::make_pair("SERVER_PORT",
 											ValueToString(request_.GetPort())));
 	env_.insert(std::make_pair("QUERY_STRING", request_.GetQueryString()));
+	env_.insert(std::make_pair("SCRIPT_FILENAME", arg_path_));
 	return env_;
 }
 
@@ -68,66 +61,29 @@ char **CGI::MakeCEnv_(void) {
 	return env_;
 }
 
-size_t CGI::NextStatementThrowing_(const std::string &str,
-								   const std::string &separator,
-								   bool needsSeparator,
-								   size_t line) {
-	std::ostringstream strline;
-	strline << line;
-	size_t next_statement_delimiter = str.find(separator);
-	if (next_statement_delimiter == std::string::npos)
-		next_statement_delimiter = str.size();
-	if (needsSeparator && str.find(separator) == std::string::npos)
-		throw std::invalid_argument("Invalid header format for str: \"" + str +
-									"\" and separator: \"" + separator + "\""
-									" in line:" + strline.str());
-	return next_statement_delimiter;
-}
-
-void CGI::SetHeaders_(void) {
-	std::string remain = CGIoutHeaders_;
-	while(!remain.empty()) {
-		size_t next_statement_delimiter = NextStatementThrowing_(remain,
-																 kCRLF_,
-																 false,
-																 __LINE__);
-		std::string statement = remain.substr(0, next_statement_delimiter);
-		size_t colonPos = NextStatementThrowing_(statement, ":", true, __LINE__);
-		response_->AddHeader(TrimString(statement.substr(0, colonPos), " "),
-							TrimString(statement.substr(colonPos + 1), " "));
-		size_t remain_delimiter = NextStatementThrowing_(remain, kCRLF_, false,
-							 __LINE__) + std::string(kCRLF_).size();
-		remain = remain.substr(remain_delimiter > remain.size() ?
-							   remain.size() : remain_delimiter);
+int CGI::ExecuteCGI(void) {
+	FILE *fp = std::tmpfile();
+	if (!fp) {
+		throw std::runtime_error(std::strerror(errno));;
 	}
-}
-
-const char CGI::kCRLF_[] = "\r\n";
-
-void CGI::ParseCGIOut_(void) {
-	size_t headers_end;
-	if ((headers_end = CGIout_.find(std::string(kCRLF_) + kCRLF_))
-		== std::string::npos)
-		throw std::invalid_argument("Invalid CGI request headers");
-	CGIoutHeaders_ = CGIout_.substr(0, headers_end);
-	CGIoutBody_ = CGIout_.substr(headers_end + (std::string(kCRLF_)
-												+ kCRLF_).size());
-	response_->SetBody(CGIoutBody_);
-	SetHeaders_();
-}
-
-void CGI::ExecuteCGI(void) {
-	SyscallWrap::pipeWr(pipes_);
-	SyscallWrap::pipeWr(pipes2_);
+	const std::string body = request_.GetBody();
+	std::fwrite(body.c_str(), 1, body.size(), fp);
+	std::rewind(fp);
+	SyscallWrap::pipeWr(fds_);
+	if (!IsExecutable(exec_path_)) {
+		throw std::runtime_error(std::strerror(errno));;
+	}
 	pid_t pid = SyscallWrap::forkWr();
 	if (pid == 0) {
+		std::signal(SIGCHLD, SIG_IGN);
+		std::signal(SIGPIPE, SIG_DFL);
 		try {
-			CloseAssign_(&pipes2_[1]);
-			SyscallWrap::dup2Wr(pipes2_[0], STDIN_FILENO);
-			CloseAssign_(&pipes2_[0]);
-			SyscallWrap::dup2Wr(pipes_[1], STDOUT_FILENO);
-			CloseAssign_(&pipes_[0]);
-			CloseAssign_(&pipes_[1]);
+			CloseAssign_(&fds_[0]);
+			int cgi_input = fileno(fp);
+			SyscallWrap::dup2Wr(cgi_input, STDIN_FILENO);
+			SyscallWrap::dup2Wr(fds_[1], STDOUT_FILENO);
+			CloseAssign_(&fds_[1]);
+
 			char * const argv[] = {DuplicateString(exec_path_),
 									DuplicateString(arg_path_),
 									NULL};
@@ -136,35 +92,13 @@ void CGI::ExecuteCGI(void) {
 		catch (const std::exception &) {
 			std::exit(EXIT_FAILURE);
 		}
-	} else {
-		WriteAll_(pipes2_[1], reqBody_.c_str(), reqBody_.size());
-		CloseAssign_(&pipes2_[0]);
-		CloseAssign_(&pipes2_[1]);
-		int status;
-		SyscallWrap::waitpidWr(-1, &status, 0);
-		if (WIFEXITED(status))
-			execRet_ = WEXITSTATUS(status);
-		CloseAssign_(&pipes_[1]);
-		char buffer[BUFFER_SIZE];
-		int bytes_read;
-		while ((bytes_read = SyscallWrap::readWr(pipes_[0], buffer,
-												 BUFFER_SIZE - 1)) > 0) {
-			buffer[bytes_read] = '\0';
-			CGIout_ += buffer;
-		}
-		CloseAssign_(&pipes_[0]);
 	}
-	ParseCGIOut_();
-}
-
-int		CGI::GetExecReturn() const {
-	return execRet_;
-}
-
-void	CGI::WriteAll_(int fd, const void *buf, size_t count) {
-	while (count) {
-		count -= SyscallWrap::writeWr(fd, buf, count);
+	if (std::fclose(fp)) {
+		throw std::runtime_error(std::strerror(errno));;
 	}
+	CloseAssign_(&fds_[1]);
+	int cgi_output_fd = SyscallWrap::dupWr(fds_[0]);
+	return cgi_output_fd;
 }
 
 void	CGI::CloseAssign_(int *fd) {
