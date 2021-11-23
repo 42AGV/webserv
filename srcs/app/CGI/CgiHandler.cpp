@@ -1,7 +1,9 @@
 #include <CgiHandler.hpp>
 
-CgiHandler::CgiHandler(int socket, int cgi_output)
-	: socket_(socket), cgi_output_(cgi_output), cgi_complete_(false) {}
+CgiHandler::CgiHandler(int socket, t_CGI_out cgi_out)
+	: socket_(socket), fd_npid_(cgi_out), cgi_complete_(false) {
+	cgi_output_ = fd_npid_.cgi_out_;
+}
 
 CgiHandler::~CgiHandler() {
 	close(socket_);

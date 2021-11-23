@@ -32,7 +32,7 @@ class Server {
 		Server &	operator=(const Server &);
 		void	AddConnection_(int sd);
 		void	BindListeningSocket_() const;
-		void	AddCgiHandler_(int sd, int cgi_output_fd);
+		void	AddCgiHandler_(int sd, t_CGI_out cgi_out);
 		void	RemoveCgiHandler_(CgiHandler *handler, int sd, int fd);
 		void	RemoveConnection_(int sd);
 

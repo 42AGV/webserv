@@ -61,8 +61,9 @@ char **CGI::MakeCEnv_(void) {
 	return env_;
 }
 
-int CGI::ExecuteCGI(void) {
+t_CGI_out CGI::ExecuteCGI(void) {
 	FILE *fp = std::tmpfile();
+	t_CGI_out ret_val;
 	if (!fp) {
 		throw std::runtime_error(std::strerror(errno));;
 	}
@@ -99,8 +100,9 @@ int CGI::ExecuteCGI(void) {
 		throw std::runtime_error(std::strerror(errno));;
 	}
 	CloseAssign_(&fds_[1]);
-	int cgi_output_fd = SyscallWrap::dupWr(fds_[0]);
-	return cgi_output_fd;
+	ret_val.pid = pid;
+	ret_val.cgi_out_ = SyscallWrap::dupWr(fds_[0]);
+	return ret_val;
 }
 
 void	CGI::CloseAssign_(int *fd) {

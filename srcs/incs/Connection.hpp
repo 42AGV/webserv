@@ -19,7 +19,7 @@ class Connection {
 		~Connection();
 		ReceiveRequestStatus::Type	ReceiveRequest();
 		SendResponseStatus::Type	SendResponse();
-		int							GetCgiOutputFd() const;
+		t_CGI_out	GetCgiOutputFd() const;
 
 	private:
 		Connection();

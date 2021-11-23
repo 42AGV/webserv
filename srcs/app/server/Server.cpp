@@ -136,14 +136,14 @@ void	Server::RemoveConnection_(int sd) {
 	connections_.erase(sd);
 }
 
-void	Server::AddCgiHandler_(int sd, int cgi_output_fd) {
-	fdSets_->addToReadSet(cgi_output_fd);
+void	Server::AddCgiHandler_(int sd, t_CGI_out cgi_out) {
+	fdSets_->addToReadSet(cgi_out.cgi_out_);
 
 	int socket_copy = SyscallWrap::dupWr(sd);
 
-	CgiHandler *handler = new CgiHandler(socket_copy, cgi_output_fd);
-	cgi_handlers_.insert(std::make_pair(cgi_output_fd, handler));
-	cgi_fds_.insert(std::make_pair(socket_copy, cgi_output_fd));
+	CgiHandler *handler = new CgiHandler(socket_copy, cgi_out);
+	cgi_handlers_.insert(std::make_pair(cgi_out.cgi_out_, handler));
+	cgi_fds_.insert(std::make_pair(socket_copy, cgi_out.cgi_out_));
 	RemoveConnection_(sd);
 }
 

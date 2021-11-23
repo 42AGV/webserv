@@ -22,7 +22,7 @@ class CGI {
 	CGI(const HttpRequest &request, const RequestConfig &location,
 		const std::string &extension);
 	virtual ~CGI(void);
-	int ExecuteCGI(void);
+	t_CGI_out ExecuteCGI(void);
 
  private:
 	CGI();

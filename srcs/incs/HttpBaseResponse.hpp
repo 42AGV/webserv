@@ -17,7 +17,7 @@ class HttpBaseResponse: public IResponse {
 		std::string	Content() const;
 		bool	KeepAlive() const;
 		bool	IsCgi() const;
-		int		GetCgiOutputFd() const;
+		t_CGI_out		GetCgiOutputFd() const;
 
 	protected:
 		void	ExecuteCGI_(const File &file);
@@ -34,7 +34,7 @@ class HttpBaseResponse: public IResponse {
 		std::string raw_response_;
 		RequestConfig *request_config_;
 		HttpRequest *request_;
-		int cgi_output_fd_;
+		t_CGI_out cgi_out_;
 };
 
 #include <CGI.hpp>
