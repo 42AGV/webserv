@@ -3,7 +3,10 @@
 #include <cstdlib>
 #include <WebServer.hpp>
 
+std::map<pid_t, CgiHandler> g_pidToCgiHandlers;
+
 int main(int argc, char *argv[]) {
+	std::signal(SIGCHLD, sigchld_handler);
 	std::signal(SIGPIPE, SIG_IGN);
 	std::string	config_path = "config/default.conf";
 
