@@ -91,12 +91,12 @@ std::string	PathExtension(const std::string &path) {
 
 void sigchld_handler(int signum) {
 	pid_t pid;
-	int   status;
+	int   status = 0;
 
 	(void)signum;
 	while ((pid = waitpid(-1, &status, WNOHANG)) != -1) {
-		(void)pid;
-		g_pidToCgiHandlers.erase(pid);
-		// unregister_child(pid, status);   // Or whatever you need to do with the PID
+		if (WIFEXITED(status)) {
+			g_pidToRetStatus.insert(std::make_pair(pid, status));
+		}
 	}
 }

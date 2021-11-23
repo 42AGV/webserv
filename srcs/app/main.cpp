@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <WebServer.hpp>
 
-std::map<pid_t, CgiHandler> g_pidToCgiHandlers;
+std::map<pid_t, int> g_pidToRetStatus;
 
 int main(int argc, char *argv[]) {
 	std::signal(SIGCHLD, sigchld_handler);

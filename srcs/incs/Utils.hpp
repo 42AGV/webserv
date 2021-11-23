@@ -31,6 +31,6 @@ std::string	ValueToString(const T &value) {
 	return out.str();
 }
 
-extern std::map<pid_t, CgiHandler> g_pidToCgiHandlers;
+extern std::map<pid_t, int> g_pidToRetStatus;
 
 #endif  // SRCS_INCS_UTILS_HPP_

@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string>
+#include <map>
 #include <CommonDefinitions.hpp>
 
 class CgiHandler {
@@ -26,7 +27,10 @@ class CgiHandler {
 		const t_CGI_out			fd_npid_;
 		int						cgi_output_;
 		bool					cgi_complete_;
+		bool					sent_headers_;
 		std::string				data_;
 };
+
+extern std::map<pid_t, int> g_pidToRetStatus;
 
 #endif  // SRCS_INCS_CGIHANDLER_HPP_
