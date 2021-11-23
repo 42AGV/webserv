@@ -42,4 +42,6 @@ class CGI {
 	int fds_[2];
 };
 
+#include <HttpErrorResponse.hpp>
+
 #endif  // SRCS_INCS_CGI_HPP_

@@ -3,7 +3,6 @@
 
 #include <string>
 #include <ctime>
-#include <CGI.hpp>
 #include <IResponse.hpp>
 #include <HttpResponse.hpp>
 #include <HttpRequest.hpp>
@@ -37,5 +36,7 @@ class HttpBaseResponse: public IResponse {
 		HttpRequest *request_;
 		int cgi_output_fd_;
 };
+
+#include <CGI.hpp>
 
 #endif  // SRCS_INCS_HTTPBASERESPONSE_HPP_
