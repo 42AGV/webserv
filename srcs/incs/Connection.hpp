@@ -32,6 +32,8 @@ class Connection {
 		IResponse			*response_;
 		std::string			raw_request_;
 		std::string			raw_response_;
+ public:
+  const std::string &GetRawResponse() const;
 };
 
 #endif  // SRCS_INCS_CONNECTION_HPP_

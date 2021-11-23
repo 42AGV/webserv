@@ -9,7 +9,10 @@
 
 class CgiHandler {
 	public:
-		CgiHandler(int socket, t_CGI_out cgi_out);
+		CgiHandler(int socket,
+				   t_CGI_out cgi_out,
+				   const std::string &ok_header,
+				   const std::string &nook_header);
 		~CgiHandler();
 		ssize_t	ReadCgiOutput();
 		ssize_t	SendCgiOutput();
@@ -23,6 +26,8 @@ class CgiHandler {
 		CgiHandler(const CgiHandler &);
 		CgiHandler &	operator=(const CgiHandler &);
 
+		const std::string 		ok_header;
+		const std::string		nook_header;
 		int						socket_;
 		const t_CGI_out			fd_npid_;
 		int						cgi_output_;

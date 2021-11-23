@@ -39,6 +39,9 @@ SendResponseStatus::Type	Connection::SendResponse() {
 		response_ = response_factory_->Response();
 		raw_response_ = response_->Content();
 	}
+	if (response_->IsCgi()) {
+		return SendResponseStatus::kHandleCgi;
+	}
 	ssize_t nbytes = send(socket_, raw_response_.c_str(), raw_response_.size(), 0);
 	if (nbytes <= 0) {
 		return SendResponseStatus::kFail;
@@ -46,9 +49,6 @@ SendResponseStatus::Type	Connection::SendResponse() {
 	raw_response_.erase(0, nbytes);
 	if (raw_response_.empty()) {
 		request_->Reset();
-		if (response_->IsCgi()) {
-			return SendResponseStatus::kHandleCgi;
-		}
 		if (response_->KeepAlive()) {
 			return SendResponseStatus::kCompleteKeep;
 		}
@@ -59,4 +59,7 @@ SendResponseStatus::Type	Connection::SendResponse() {
 
 t_CGI_out	Connection::GetCgiOutputFd() const {
 	return response_->GetCgiOutputFd();
+}
+const std::string &Connection::GetRawResponse() const {
+	return raw_response_;
 }
