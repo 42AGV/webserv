@@ -37,21 +37,14 @@ void	HttpBaseResponse::Serve_(File file) {
 	SetRawResponse_(200, headers, body);
 }
 
-void	HttpBaseResponse::ExecuteCGI_(File file) {
+void	HttpBaseResponse::ExecuteCGI_(const File &file) {
 	keep_alive_ = false;
-	try {
-		CGI engine(*request_, *request_config_, file.GetPathExtension());
-		cgi_output_fd_ = engine.ExecuteCGI();
-		HttpResponse::HeadersMap headers;
-		std::string body;
-		SetRawResponse_(200, headers, body);
-	}
-	catch (const std::exception &) {
-		raw_response_ = HttpErrorResponse(
-										500,
-										request_config_,
-										request_).Content();
-	}
+
+	CGI engine(*request_, *request_config_, file.GetPathExtension());
+	cgi_output_fd_ = engine.ExecuteCGI();
+	HttpResponse::HeadersMap headers;
+	std::string body;
+	SetRawResponse_(200, headers, body);
 }
 
 void	HttpBaseResponse::DefaultStatusResponse_(int code) {

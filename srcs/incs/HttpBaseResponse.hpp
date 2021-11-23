@@ -20,7 +20,7 @@ class HttpBaseResponse: public IResponse {
 		int		GetCgiOutputFd() const;
 
 	protected:
-		void	ExecuteCGI_(File file);
+		void	ExecuteCGI_(const File &file);
 		void	Serve_(File file);
 		void	DefaultStatusResponse_(int code);
 		void	SetRawResponse_(
