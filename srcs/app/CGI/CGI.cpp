@@ -89,10 +89,6 @@ t_CGI_out CGI::ExecuteCGI(void) {
 		}
 		catch (const std::exception &e) {
 			std::cerr << e.what();
-			std::cout << HttpErrorResponse(
-				500,
-				const_cast<RequestConfig *>(requestConfig_),
-				const_cast<HttpRequest *>(&request_)).Content();
 			std::exit(EXIT_FAILURE);
 		}
 	}

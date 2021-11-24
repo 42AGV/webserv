@@ -20,6 +20,8 @@ class Connection {
 		ReceiveRequestStatus::Type	ReceiveRequest();
 		SendResponseStatus::Type	SendResponse();
 		t_CGI_out	GetCgiOutputFd() const;
+		std::string GetRawOkResponse() const;
+		std::string GetRawNookResponse() const;
 
 	private:
 		Connection();
@@ -32,8 +34,7 @@ class Connection {
 		IResponse			*response_;
 		std::string			raw_request_;
 		std::string			raw_response_;
- public:
-  const std::string &GetRawResponse() const;
+		std::string			nook_response_;
 };
 
 #endif  // SRCS_INCS_CONNECTION_HPP_

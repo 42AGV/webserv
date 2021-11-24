@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <cstring>
 #include <map>
+#include <string>
 #include <Connection.hpp>
 #include <HttpRequest.hpp>
 #include <HttpResponseFactory.hpp>
@@ -32,7 +33,9 @@ class Server {
 		Server &	operator=(const Server &);
 		void	AddConnection_(int sd);
 		void	BindListeningSocket_() const;
-		void AddCgiHandler_(int sd, t_CGI_out cgi_out, const std::string ok_header, const std::string nook_header);
+		void AddCgiHandler_(int sd, t_CGI_out cgi_out,
+							const std::string &ok_header,
+							const std::string &nook_header);
 		void	RemoveCgiHandler_(CgiHandler *handler, int sd, int fd);
 		void	RemoveConnection_(int sd);
 

@@ -10,6 +10,7 @@ class IResponse {
 		virtual bool	KeepAlive() const = 0;
 		virtual bool	IsCgi() const = 0;
 		virtual t_CGI_out	GetCgiOutputFd() const = 0;
+		virtual std::string NookResponse() const = 0;
 		virtual ~IResponse() {}
 };
 

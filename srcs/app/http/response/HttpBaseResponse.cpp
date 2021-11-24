@@ -28,6 +28,13 @@ std::string	 HttpBaseResponse::Content() const {
 	return raw_response_;
 }
 
+std::string HttpBaseResponse::NookResponse() const {
+	return HttpErrorResponse(
+		500,
+		request_config_,
+		request_).Content();
+}
+
 void	HttpBaseResponse::Serve_(File file) {
 	HttpResponse::HeadersMap headers;
 	std::string body;
@@ -40,19 +47,11 @@ void	HttpBaseResponse::Serve_(File file) {
 void	HttpBaseResponse::ExecuteCGI_(const File &file) {
 	keep_alive_ = false;
 
-	try {
-		CGI engine(*request_, *request_config_, file.GetPathExtension());
-		cgi_out_ = engine.ExecuteCGI();
-		HttpResponse::HeadersMap headers;
-		std::string body;
-		SetRawResponse_(200, headers, body);
-	}
-	catch (const std::exception &) {
-		raw_response_ = HttpErrorResponse(
-			500,
-			request_config_,
-			request_).Content();
-	}
+	CGI engine(*request_, *request_config_, file.GetPathExtension());
+	cgi_out_ = engine.ExecuteCGI();
+	HttpResponse::HeadersMap headers;
+	std::string body;
+	SetRawResponse_(200, headers, body);
 }
 
 void	HttpBaseResponse::DefaultStatusResponse_(int code) {

@@ -40,6 +40,7 @@ SendResponseStatus::Type	Connection::SendResponse() {
 		raw_response_ = response_->Content();
 	}
 	if (response_->IsCgi()) {
+		nook_response_ = response_->NookResponse();
 		return SendResponseStatus::kHandleCgi;
 	}
 	ssize_t nbytes = send(socket_, raw_response_.c_str(), raw_response_.size(), 0);
@@ -60,6 +61,11 @@ SendResponseStatus::Type	Connection::SendResponse() {
 t_CGI_out	Connection::GetCgiOutputFd() const {
 	return response_->GetCgiOutputFd();
 }
-const std::string &Connection::GetRawResponse() const {
+
+std::string Connection::GetRawOkResponse() const {
 	return raw_response_;
+}
+
+std::string Connection::GetRawNookResponse() const {
+	return nook_response_;
 }

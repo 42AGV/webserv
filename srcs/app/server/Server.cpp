@@ -75,8 +75,8 @@ void	Server::SendResponse(int sd) {
 		RemoveConnection_(sd);
 	} else if (status == SendResponseStatus::kHandleCgi) {
 		AddCgiHandler_(sd, it->second->GetCgiOutputFd(),
-					   it->second->GetRawResponse(),
-					   it->second->GetRawResponse());
+					   it->second->GetRawOkResponse(),
+					   it->second->GetRawNookResponse());
 	}
 }
 
@@ -138,12 +138,16 @@ void	Server::RemoveConnection_(int sd) {
 	connections_.erase(sd);
 }
 
-void Server::AddCgiHandler_(int sd, t_CGI_out cgi_out, const std::string ok_header, const std::string nook_header) {
+void Server::AddCgiHandler_(int sd, t_CGI_out cgi_out,
+							const std::string &ok_header,
+							const std::string &nook_header) {
 	fdSets_->addToReadSet(cgi_out.cgi_out_);
 
 	int socket_copy = SyscallWrap::dupWr(sd);
 
-	CgiHandler *handler = new CgiHandler(socket_copy, cgi_out, ok_header, nook_header);
+	CgiHandler *handler = new CgiHandler(socket_copy,
+										 cgi_out, ok_header,
+										 nook_header);
 	cgi_handlers_.insert(std::make_pair(cgi_out.cgi_out_, handler));
 	cgi_fds_.insert(std::make_pair(socket_copy, cgi_out.cgi_out_));
 	RemoveConnection_(sd);

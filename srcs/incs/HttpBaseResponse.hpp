@@ -15,6 +15,7 @@ class HttpBaseResponse: public IResponse {
 			RequestConfig *requestConfig,
 			HttpRequest *request);
 		std::string	Content() const;
+		std::string NookResponse() const;
 		bool	KeepAlive() const;
 		bool	IsCgi() const;
 		t_CGI_out		GetCgiOutputFd() const;

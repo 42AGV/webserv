@@ -4,8 +4,9 @@ CgiHandler::CgiHandler(int socket,
 					   t_CGI_out cgi_out,
 					   const std::string &ok_header,
 					   const std::string &nook_header)
-	: socket_(socket), fd_npid_(cgi_out), cgi_complete_(false),
-	  sent_headers_(false) {
+	: ok_header_(ok_header), nook_header_(nook_header),
+		socket_(socket), fd_npid_(cgi_out), cgi_complete_(false),
+		sent_headers_(false), headers_(NULL) {
 	cgi_output_ = fd_npid_.cgi_out_;
 }
 
@@ -29,11 +30,19 @@ ssize_t	CgiHandler::ReadCgiOutput() {
 
 ssize_t	CgiHandler::SendCgiOutput() {
 	ssize_t nbytes = 0;
+	size_t size;
 	if (!sent_headers_ && g_pidToRetStatus.count(fd_npid_.pid) > 0) {
 		if (g_pidToRetStatus[fd_npid_.pid] != 0) {
-			nbytes = send(socket_, nook_header.c_str(), nook_header.size(), 0);
+			headers_ = &nook_header_;
+			size = nook_header_.size();
 		} else {
-			nbytes = send(socket_, ok_header.c_str(), ok_header.size(), 0);
+			headers_ = &ok_header_;
+			size = ok_header_.size();
+		}
+		nbytes = send(socket_, headers_->c_str(), size, 0);
+		if (nbytes != static_cast<ssize_t>(size)) {
+			headers_->erase(0, nbytes);
+			return nbytes;
 		}
 		sent_headers_ = true;
 		g_pidToRetStatus.erase(fd_npid_.pid);
@@ -47,7 +56,7 @@ ssize_t	CgiHandler::SendCgiOutput() {
 }
 
 bool	CgiHandler::HasDataAvailable() const {
-	return !data_.empty();
+	return !sent_headers_ || !data_.empty();
 }
 
 int		CgiHandler::GetSocket() const {
